@@ -77,8 +77,6 @@ async fn main() {
     let mut bg_color = Color::from_rgba(120, 120, 120, 255);
 
     loop {
-        clear_background(bg_color);
-
         // calculate x/y percentage of mouse on screen
         let win_size = (window::screen_width(), window::screen_height());
         let mouse_pos = mouse_position();
@@ -87,6 +85,10 @@ async fn main() {
         bg_color.r = pct_x;
         bg_color.b = pct_y;
 
+        // start render
+        clear_background(bg_color);
+        // draw circle
+        draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);
         fps_counter.update();
 
         // delay to next frame

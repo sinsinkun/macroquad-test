@@ -1,7 +1,12 @@
 use std::time::Duration;
 
 use macroquad::prelude::*;
+use macroquad::window;
 use miniquad::conf::Platform;
+
+// --- --- --- --- --- --- --- --- --- --- //
+// --- --- --- - COMPONENTS -- --- --- --- //
+// --- --- --- --- --- --- --- --- --- --- //
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -35,6 +40,9 @@ impl<'a> FpsCounter<'a> {
     }
 }
 
+// --- --- --- --- --- --- --- --- --- --- //
+// --- --- --- -- MAIN LOOP -- --- --- --- //
+// --- --- --- --- --- --- --- --- --- --- //
 // window settings
 fn window_conf() -> Conf {
     // note: swap_interval determines Vsync
@@ -66,13 +74,23 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
+    let mut bg_color = Color::from_rgba(120, 120, 120, 255);
 
     loop {
-        // render
-        clear_background(DARKGRAY);
+        clear_background(bg_color);
+
+        // calculate x/y percentage of mouse on screen
+        let win_size = (window::screen_width(), window::screen_height());
+        let mouse_pos = mouse_position();
+        let pct_x = mouse_pos.0 / win_size.0;
+        let pct_y = mouse_pos.1 / win_size.1;
+        bg_color.r = pct_x;
+        bg_color.b = pct_y;
+
         fps_counter.update();
+
         // delay to next frame
-        std::thread::sleep(Duration::from_millis(6));
+        std::thread::sleep(Duration::from_micros(6000));
         next_frame().await
     }
 }

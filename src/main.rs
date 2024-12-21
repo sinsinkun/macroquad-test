@@ -87,7 +87,7 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
-    let ui_global = UiGlobal::new(Some(&font));
+    let ui_global = UiGlobal::new().with_font(&font);
     let ui_glb = Rc::new(RefCell::new(ui_global));
     let mut box1 = UiBox::new(
         Rc::clone(&ui_glb),

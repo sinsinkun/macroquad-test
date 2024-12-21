@@ -42,8 +42,9 @@ pub struct UiGlobal<'a> {
   pub clr_error: Color,
   pub clr_shadow: Color,
 }
+#[allow(dead_code)]
 impl<'a> UiGlobal<'a> {
-  pub fn new(font: Option<&'a Font>) -> Self {
+  pub fn new() -> Self {
     UiGlobal {
       screen_size: (0.0, 0.0),
       screen_resized: false,
@@ -55,7 +56,7 @@ impl<'a> UiGlobal<'a> {
       held_id: 0,
       drag_ids: vec![],
       id_gen_tracker: 1,
-      font: font,
+      font: None,
       clr_base: Color::from_rgba(160, 160, 160, 255),
       clr_highlight: Color::from_rgba(180, 180, 180, 255),
       clr_lowlight: Color::from_rgba(140, 140, 140, 255),
@@ -67,6 +68,13 @@ impl<'a> UiGlobal<'a> {
       clr_error: Color::from_rgba(200, 10, 10, 255),
       clr_shadow: Color::from_rgba(0, 0, 0, 100),
     }
+  }
+  pub fn with_font(mut self, font: &'a Font) -> Self {
+    self.font = Some(font);
+    self
+  }
+  pub fn attach_font(&mut self, font: &'a Font) {
+    self.font = Some(font);
   }
   pub fn get_new_id(&mut self) -> u32 {
     let id = self.id_gen_tracker;

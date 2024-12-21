@@ -6,13 +6,12 @@ use macroquad::prelude::*;
 use macroquad::window;
 use miniquad::conf::Platform;
 
-mod c_ui;
-mod c_util;
-use c_ui::{UiBox, UiGlobal};
-
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- - COMPONENTS -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
+mod c_ui;
+mod c_util;
+use c_ui::{UiBox, UiGlobal};
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -47,9 +46,10 @@ impl<'a> FpsCounter<'a> {
 }
 
 fn update_bg_color(bg_color: &mut Color, win_size: &(f32, f32)) {
+    // calculate x/y percentage of mouse on screen
     let mouse_pos = mouse_position();
-    let pct_x = 0.4 + 0.5 * mouse_pos.0 / win_size.0;
-    let pct_y = 0.3 + 0.5 * mouse_pos.1 / win_size.1;
+    let pct_x = 0.2 + 0.5 * mouse_pos.0 / win_size.0;
+    let pct_y = 0.2 + 0.5 * mouse_pos.1 / win_size.1;
     bg_color.r = pct_x;
     bg_color.b = pct_y;
 }
@@ -57,7 +57,6 @@ fn update_bg_color(bg_color: &mut Color, win_size: &(f32, f32)) {
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- -- MAIN LOOP -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
-// window settings
 fn window_conf() -> Conf {
     // note: swap_interval determines Vsync
     // -1: adaptive vsync
@@ -92,16 +91,17 @@ async fn main() {
     let ui_glb = Rc::new(RefCell::new(ui_global));
     let mut box1 = UiBox::new(
         Rc::clone(&ui_glb),
-        Rect { x: 10.0, y: 100.0, w: 200.0, h: 100.0 }
+        Rect { x: 10.0, y: 100.0, w: 200.0, h: 100.0 },
+        true
     );
     let mut box2 = UiBox::new(
         Rc::clone(&ui_glb),
-        Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 }
+        Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 },
+        true
     );
-    let mut bg_color = Color::from_rgba(120, 120, 120, 255);
+    let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {
-        // calculate x/y percentage of mouse on screen
         let win_size = (window::screen_width(), window::screen_height());
         update_bg_color(&mut bg_color, &win_size);
         ui_glb.borrow_mut().update();

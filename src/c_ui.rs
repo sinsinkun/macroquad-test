@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -16,23 +14,33 @@ pub enum UiEvent{ None, Hover, Hold, LClick, RClick, LRelease, RRelease }
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 enum MouseState{ None, Hover, Down, Hold, Up }
 
-#[derive(Debug, PartialEq, Clone)]
-enum CursorState{ Default, Hand }
-
+#[allow(dead_code)]
 #[derive(Debug)]
 pub struct UiGlobal<'a> {
+  // window related data
   screen_size: (f32, f32),
   screen_resized: bool,
   mouse_pos: (f32, f32),
   mouse_delta: (f32, f32),
   mouse_l_state: MouseState,
   mouse_r_state: MouseState,
-  cursor_state: CursorState,
-  font: Option<&'a Font>,
+  // component action handling
   action_available: bool,
   held_id: u32,
   drag_ids: Vec<u32>,
   id_gen_tracker: u32,
+  // theme
+  font: Option<&'a Font>,
+  pub clr_base: Color,
+  pub clr_highlight: Color,
+  pub clr_lowlight: Color,
+  pub clr_contrast: Color,
+  pub clr_accent_1: Color,
+  pub clr_accent_2: Color,
+  pub clr_body: Color,
+  pub clr_warning: Color,
+  pub clr_error: Color,
+  pub clr_shadow: Color,
 }
 impl<'a> UiGlobal<'a> {
   pub fn new(font: Option<&'a Font>) -> Self {
@@ -43,12 +51,21 @@ impl<'a> UiGlobal<'a> {
       mouse_delta: (0.0, 0.0),
       mouse_l_state: MouseState::None,
       mouse_r_state: MouseState::None,
-      cursor_state: CursorState::Default,
-      font: font,
       action_available: true,
       held_id: 0,
       drag_ids: vec![],
       id_gen_tracker: 1,
+      font: font,
+      clr_base: Color::from_rgba(160, 160, 160, 255),
+      clr_highlight: Color::from_rgba(180, 180, 180, 255),
+      clr_lowlight: Color::from_rgba(140, 140, 140, 255),
+      clr_contrast: Color::from_rgba(0, 0, 0, 255),
+      clr_accent_1: Color::from_rgba(120, 120, 200, 255),
+      clr_accent_2: Color::from_rgba(200, 120, 120, 255),
+      clr_body: Color::from_rgba(0, 0, 0, 255),
+      clr_warning: Color::from_rgba(200, 200, 10, 255),
+      clr_error: Color::from_rgba(200, 10, 10, 255),
+      clr_shadow: Color::from_rgba(0, 0, 0, 100),
     }
   }
   pub fn get_new_id(&mut self) -> u32 {
@@ -160,22 +177,19 @@ pub struct UiBox<'b> {
   id: u32,
   global: Rc<RefCell<UiGlobal<'b>>>,
   pos_size: Rect,
-  pub bg_color: Color,
-  pub hover_color: Color,
-  pub down_color: Color,
+  render_shadow: bool,
   active_color: Color,
 }
 impl<'b> UiBox<'b> {
-  pub fn new(ui_global: Rc<RefCell<UiGlobal<'b>>>, pos_size: Rect) -> Self {
+  pub fn new(ui_global: Rc<RefCell<UiGlobal<'b>>>, pos_size: Rect, render_shadow: bool) -> Self {
     let id = ui_global.borrow_mut().get_new_id();
+    let base_clr = ui_global.borrow().clr_base;
     Self {
       id: id,
       global: ui_global,
       pos_size: pos_size,
-      bg_color: Color::from_rgba(200, 200, 200, 255),
-      hover_color: Color::from_rgba(220, 220, 220, 255),
-      down_color: Color::from_rgba(180, 180, 180, 255),
-      active_color: Color::from_rgba(200, 200, 200, 255)
+      render_shadow: render_shadow,
+      active_color: base_clr
     }
   }
   pub fn update(&mut self) -> bool {
@@ -183,20 +197,26 @@ impl<'b> UiBox<'b> {
     let evt = glb.component_update(self.id, &mut self.pos_size, true);
     match evt {
       UiEvent::LClick | UiEvent::Hold => {
-        self.active_color = self.down_color;
+        self.active_color = glb.clr_lowlight;
       }
       UiEvent::Hover => {
-        self.active_color = self.hover_color;
+        self.active_color = glb.clr_highlight;
       }
       _ => {
-        self.active_color = self.bg_color;
+        self.active_color = glb.clr_base;
       }
     };
-    
+
     // return click event
     evt.clone() == UiEvent::LClick
   }
   pub fn render(&self) {
+    if self.render_shadow {
+      draw_rectangle(
+        self.pos_size.x - 0.5, self.pos_size.y - 1.0, self.pos_size.w + 3.0, self.pos_size.h + 4.5,
+        self.global.borrow().clr_shadow
+      );
+    }
     draw_rectangle(
       self.pos_size.x, self.pos_size.y, self.pos_size.w, self.pos_size.h,
       self.active_color

@@ -190,10 +190,10 @@ impl<'a> UiGlobal<'a> {
 }
 
 #[derive(Debug)]
-pub struct UiBox<'b> {
+pub struct UiBox<'a> {
   id: u32,
   child_ids: Vec<u32>,
-  global: Rc<RefCell<UiGlobal<'b>>>,
+  global: Rc<RefCell<UiGlobal<'a>>>,
   pos_size: Rect,
   draggable: bool,
   render_shadow: bool,
@@ -202,9 +202,9 @@ pub struct UiBox<'b> {
   pub click_color: Color,
   active_color: Color,
 }
-impl<'b> UiBox<'b> {
+impl<'a> UiBox<'a> {
   pub fn new(
-    ui_global: Rc<RefCell<UiGlobal<'b>>>, pos_size: Rect, render_shadow: bool, draggable: bool
+    ui_global: Rc<RefCell<UiGlobal<'a>>>, pos_size: Rect, render_shadow: bool, draggable: bool
   ) -> Self {
     let id = ui_global.borrow_mut().get_new_id();
     let base_clr = ui_global.borrow().clr_base;
@@ -275,9 +275,9 @@ impl<'b> UiBox<'b> {
 }
 
 #[derive(Debug)]
-pub struct UiButton<'c> {
+pub struct UiButton<'a> {
   id: u32,
-  global: Rc<RefCell<UiGlobal<'c>>>,
+  global: Rc<RefCell<UiGlobal<'a>>>,
   pos_size: Rect,
   text: String,
   pub bg_color: Color,
@@ -286,9 +286,9 @@ pub struct UiButton<'c> {
   pub txt_color: Color,
   active_color: Color,
 }
-impl<'c> UiButton<'c> {
+impl<'a> UiButton<'a> {
   pub fn new(
-    ui_global: Rc<RefCell<UiGlobal<'c>>>,
+    ui_global: Rc<RefCell<UiGlobal<'a>>>,
     pos_size: Rect,
     text: String
   ) -> Self {

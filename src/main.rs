@@ -120,12 +120,13 @@ async fn main() {
 
         // start render
         clear_background(bg_color);
-        box1.render();
-        box2.render();
-        btn3.render();
         // draw circle
         draw_poly(win_size.0 / 2.0 + 3.0, win_size.1 / 2.0 + 2.0, 64, 106.0, 0.0, BLACK);
         draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);
+        // draw ui
+        box1.render();
+        box2.render();
+        btn3.render();
         fps_counter.update();
 
         // delay to next frame

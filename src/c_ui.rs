@@ -12,7 +12,7 @@ use crate::c_util::point_in_rect;
 pub enum UiEvent{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-enum MouseState{ None, Down, Hold, Up }
+enum MouseState{ None, Over, Down, Hold, Up }
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -73,6 +73,7 @@ impl<'a> UiGlobal<'a> {
     self.id_gen_tracker += 1;
     id
   }
+  /** Note: needs to happen before all other UI updates */
   pub fn update(&mut self) {
     // transient states
     let sw = window::screen_width();
@@ -125,6 +126,7 @@ impl<'a> UiGlobal<'a> {
     if self.action_available && inbounds {
       self.action_available = false;
       evt = UiEvent::Hover;
+      if self.mouse_l_state < MouseState::Over { self.mouse_l_state = MouseState::Over; }
       if self.mouse_l_state == MouseState::Down {
         evt = UiEvent::LClick;
         self.held_id = id;
@@ -153,11 +155,19 @@ impl<'a> UiGlobal<'a> {
     }
     evt
   }
+  /** Note: needs to happen after all other UI updates */
   pub fn update_cursor(&self) {
     if self.action_available == false {
       match self.mouse_l_state {
-        MouseState::None => set_mouse_cursor(CursorIcon::Default),
-        _ => set_mouse_cursor(CursorIcon::Pointer),
+        MouseState::Hold => {
+          if self.drag_ids.is_empty() {
+            set_mouse_cursor(CursorIcon::Pointer);
+          } else {
+            set_mouse_cursor(CursorIcon::Move);
+          }
+        }
+        MouseState::Over | MouseState::Down => set_mouse_cursor(CursorIcon::Pointer),
+        _ => set_mouse_cursor(CursorIcon::Default),
       };
     } else {
       set_mouse_cursor(CursorIcon::Default)
@@ -181,24 +191,31 @@ pub struct UiBox<'b> {
   id: u32,
   global: Rc<RefCell<UiGlobal<'b>>>,
   pos_size: Rect,
+  draggable: bool,
   render_shadow: bool,
   active_color: Color,
 }
 impl<'b> UiBox<'b> {
-  pub fn new(ui_global: Rc<RefCell<UiGlobal<'b>>>, pos_size: Rect, render_shadow: bool) -> Self {
+  pub fn new(
+    ui_global: Rc<RefCell<UiGlobal<'b>>>, pos_size: Rect, render_shadow: bool, draggable: bool
+  ) -> Self {
     let id = ui_global.borrow_mut().get_new_id();
     let base_clr = ui_global.borrow().clr_base;
     Self {
       id: id,
       global: ui_global,
       pos_size: pos_size,
+      draggable: draggable,
       render_shadow: render_shadow,
       active_color: base_clr
     }
   }
-  pub fn update(&mut self) -> bool {
+  /** Note: updates should happen in reverse order of render order
+      so top layer components handle inputs first
+  */
+  pub fn update(&mut self) {
     let mut glb = self.global.borrow_mut();
-    let evt = glb.component_update(self.id, &mut self.pos_size, true);
+    let evt = glb.component_update(self.id, &mut self.pos_size, self.draggable);
     match evt {
       UiEvent::LClick | UiEvent::Hold => {
         self.active_color = glb.clr_lowlight;
@@ -210,9 +227,6 @@ impl<'b> UiBox<'b> {
         self.active_color = glb.clr_base;
       }
     };
-
-    // return click event
-    evt.clone() == UiEvent::LClick
   }
   pub fn render(&self) {
     if self.render_shadow {

@@ -92,12 +92,12 @@ async fn main() {
     let mut box1 = UiBox::new(
         Rc::clone(&ui_glb),
         Rect { x: 10.0, y: 100.0, w: 200.0, h: 100.0 },
-        true
+        true, false
     );
     let mut box2 = UiBox::new(
         Rc::clone(&ui_glb),
         Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 },
-        true
+        true, true
     );
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
@@ -111,11 +111,11 @@ async fn main() {
 
         // start render
         clear_background(bg_color);
+        box1.render();
+        box2.render();
         // draw circle
         draw_poly(win_size.0 / 2.0 + 3.0, win_size.1 / 2.0 + 2.0, 64, 106.0, 0.0, BLACK);
         draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);
-        box1.render();
-        box2.render();
         fps_counter.update();
 
         // delay to next frame

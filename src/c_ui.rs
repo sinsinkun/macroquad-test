@@ -9,10 +9,10 @@ use miniquad::CursorIcon;
 use crate::c_util::point_in_rect;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum UiEvent{ None, Hover, Hold, LClick, RClick, LRelease, RRelease }
+pub enum UiEvent{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-enum MouseState{ None, Hover, Down, Hold, Up }
+enum MouseState{ None, Down, Hold, Up }
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -120,22 +120,26 @@ impl<'a> UiGlobal<'a> {
     &mut self, id: u32, pos_size: &mut Rect, draggable: bool
   ) -> UiEvent {
     let mut evt = UiEvent::None;
+    let inbounds = point_in_rect(&self.mouse_pos, pos_size);
     // handle click action
-    if self.action_available && point_in_rect(&self.mouse_pos, pos_size) {
+    if self.action_available && inbounds {
       self.action_available = false;
       evt = UiEvent::Hover;
-      if self.mouse_l_state < MouseState::Hover { self.mouse_l_state = MouseState::Hover; }
       if self.mouse_l_state == MouseState::Down {
         evt = UiEvent::LClick;
         self.held_id = id;
         if draggable { self.drag_ids.push(id); }
-      } else if self.mouse_l_state == MouseState::Up {
+      } else if self.mouse_l_state == MouseState::Up && self.held_id == id {
         evt = UiEvent::LRelease;
       } else if self.mouse_r_state == MouseState::Down {
         evt = UiEvent::RClick;
-      } else if self.mouse_r_state == MouseState::Up {
+      } else if self.mouse_r_state == MouseState::Up && self.held_id == id {
         evt = UiEvent::RRelease;
       }
+    }
+    // handle click outside action
+    if self.mouse_l_state == MouseState::Down && !inbounds {
+      evt = UiEvent::LClickOuter;
     }
     // handle hold action
     if self.mouse_l_state == MouseState::Hold && self.is_holding_component(id) {

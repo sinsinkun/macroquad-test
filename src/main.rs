@@ -1,8 +1,14 @@
+use std::cell::RefCell;
+use std::rc::Rc;
 use std::time::Duration;
 
 use macroquad::prelude::*;
 use macroquad::window;
 use miniquad::conf::Platform;
+
+mod c_ui;
+mod c_util;
+use c_ui::{UiBox, UiGlobal};
 
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- - COMPONENTS -- --- --- --- //
@@ -40,6 +46,14 @@ impl<'a> FpsCounter<'a> {
     }
 }
 
+fn update_bg_color(bg_color: &mut Color, win_size: &(f32, f32)) {
+    let mouse_pos = mouse_position();
+    let pct_x = 0.4 + 0.5 * mouse_pos.0 / win_size.0;
+    let pct_y = 0.3 + 0.5 * mouse_pos.1 / win_size.1;
+    bg_color.r = pct_x;
+    bg_color.b = pct_y;
+}
+
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- -- MAIN LOOP -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
@@ -74,21 +88,34 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
+    let ui_global = UiGlobal::new(Some(&font));
+    let ui_glb = Rc::new(RefCell::new(ui_global));
+    let mut box1 = UiBox::new(
+        Rc::clone(&ui_glb),
+        Rect { x: 10.0, y: 100.0, w: 200.0, h: 100.0 }
+    );
+    let mut box2 = UiBox::new(
+        Rc::clone(&ui_glb),
+        Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 }
+    );
     let mut bg_color = Color::from_rgba(120, 120, 120, 255);
 
     loop {
         // calculate x/y percentage of mouse on screen
         let win_size = (window::screen_width(), window::screen_height());
-        let mouse_pos = mouse_position();
-        let pct_x = mouse_pos.0 / win_size.0;
-        let pct_y = mouse_pos.1 / win_size.1;
-        bg_color.r = pct_x;
-        bg_color.b = pct_y;
+        update_bg_color(&mut bg_color, &win_size);
+        ui_glb.borrow_mut().update();
+        box2.update();
+        box1.update();
+        ui_glb.borrow().update_cursor();
 
         // start render
         clear_background(bg_color);
         // draw circle
+        draw_poly(win_size.0 / 2.0 + 3.0, win_size.1 / 2.0 + 2.0, 64, 106.0, 0.0, BLACK);
         draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);
+        box1.render();
+        box2.render();
         fps_counter.update();
 
         // delay to next frame

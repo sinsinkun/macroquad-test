@@ -9,9 +9,9 @@ use miniquad::conf::Platform;
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- - COMPONENTS -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
-mod c_ui;
-mod c_util;
-use c_ui::{UiBox, UiButton, UiGlobal};
+mod mq_util;
+mod mq_ui;
+use mq_ui::{UiBox, UiButton, UiGlobal};
 
 #[derive(Debug)]
 struct FpsCounter<'a> {

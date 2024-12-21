@@ -8,7 +8,7 @@ use macroquad::window;
 use miniquad::window::set_mouse_cursor;
 use miniquad::CursorIcon;
 
-use crate::c_util::point_in_rect;
+use crate::mq_util::point_in_rect;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UiEvent{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }

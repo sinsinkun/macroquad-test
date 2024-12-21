@@ -11,7 +11,7 @@ use miniquad::conf::Platform;
 // --- --- --- --- --- --- --- --- --- --- //
 mod c_ui;
 mod c_util;
-use c_ui::{UiBox, UiGlobal};
+use c_ui::{UiBox, UiButton, UiGlobal};
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -99,20 +99,30 @@ async fn main() {
         Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 },
         true, true
     );
+    let mut btn3 = UiButton::new(
+        Rc::clone(&ui_glb),
+        Rect { x: 100.0, y: 100.0, w: 100.0, h: 40.0 },
+        "Click me".to_owned()
+    );
+    box2.attach_child(btn3.get_id());
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {
         let win_size = (window::screen_width(), window::screen_height());
         update_bg_color(&mut bg_color, &win_size);
-        ui_glb.borrow_mut().update();
+        ui_glb.borrow_mut().update_start();
+        if btn3.update() {
+            println!("Clicked btn");
+        };
         box2.update();
         box1.update();
-        ui_glb.borrow().update_cursor();
+        ui_glb.borrow_mut().update_end();
 
         // start render
         clear_background(bg_color);
         box1.render();
         box2.render();
+        btn3.render();
         // draw circle
         draw_poly(win_size.0 / 2.0 + 3.0, win_size.1 / 2.0 + 2.0, 64, 106.0, 0.0, BLACK);
         draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);

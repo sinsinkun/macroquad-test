@@ -9,6 +9,9 @@ use miniquad::conf::Platform;
 // --- --- --- --- --- --- --- --- --- --- //
 mod mq_util;
 mod mq_ui2;
+use mq_ui2::UiButton;
+use mq_ui2::UiEvent;
+use mq_ui2::UiTheme;
 use mq_ui2::{UiRoot, UiBox};
 
 #[derive(Debug)]
@@ -85,19 +88,29 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
-    let box1 = UiBox::new(Rect::new(10.0, 10.0, 200.0, 60.0), false, true);
-    let box2 = UiBox::new(Rect::new(40.0, 60.0, 100.0, 100.0), true, true)
-        .with_child(Box::new(box1));
-    let box3 = UiBox::new(Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
+    let box1 = UiBox::new(1, Rect::new(40.0, 40.0, 50.0, 50.0), false, true);
+    let box2 = UiBox::new(2, Rect::new(40.0, 60.0, 100.0, 100.0), true, true).with_child(box1);
+    let btn4 = UiButton::new(4, Rect::new(10.0, 10.0, 100.0, 30.0), "Button".to_owned());
+    let box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false).with_child(btn4);
     let mut ui = UiRoot::new()
-        .with_child(Box::new(box2))
-        .with_child(Box::new(box3));
+        .with_theme(UiTheme {
+            font: Some(&font),
+            font_size: 16,
+        })
+        .with_child(box2)
+        .with_child(box3);
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {
         let win_size = (window::screen_width(), window::screen_height());
         update_bg_color(&mut bg_color, &win_size);
-        ui.update();
+        if let Some((id, event)) = ui.update() {
+            match event {
+                UiEvent::LClick => { println!("Clicked node {id}") }
+                UiEvent::LRelease => { println!("Released node {id}") }
+                _ => ()
+            };
+        }
 
         // start render
         clear_background(bg_color);

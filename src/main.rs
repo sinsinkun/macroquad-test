@@ -9,10 +9,7 @@ use miniquad::conf::Platform;
 // --- --- --- --- --- --- --- --- --- --- //
 mod mq_util;
 mod mq_ui2;
-use mq_ui2::UiButton;
-use mq_ui2::UiEvent;
-use mq_ui2::UiTheme;
-use mq_ui2::{UiRoot, UiBox};
+use mq_ui2::*;
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -88,17 +85,17 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
-    let box1 = UiBox::new(1, Rect::new(40.0, 40.0, 50.0, 50.0), false, true);
-    let box2 = UiBox::new(2, Rect::new(40.0, 60.0, 100.0, 100.0), true, true).with_child(box1);
-    let btn4 = UiButton::new(4, Rect::new(10.0, 10.0, 100.0, 30.0), "Button".to_owned());
-    let box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false).with_child(btn4);
-    let mut ui = UiRoot::new()
-        .with_theme(UiTheme {
-            font: Some(&font),
-            font_size: 16,
-        })
-        .with_child(box2)
-        .with_child(box3);
+    let mut ui   = UiRoot::new().with_theme(UiTheme { font: Some(&font), font_size: 18 });
+    let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 100.0, 150.0), true, false);
+    let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, false);
+    let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
+    let btn4     = UiButton::new(4, Rect::new(10.0, 40.0, 100.0, 30.0), "Button".to_owned());
+    let txt5     = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned());
+    box1.add_child(box2);
+    box3.add_child(btn4);
+    box3.add_child(txt5);
+    ui.add_child(box1);
+    ui.add_child(box3);
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {

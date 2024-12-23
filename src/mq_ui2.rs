@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use macroquad::prelude::*;
+use macroquad::window;
 use miniquad::window::set_mouse_cursor;
 use miniquad::CursorIcon;
 
@@ -30,8 +31,8 @@ pub struct UiNodeParams {
   id_read_only: u32,
   draggable_read_only: bool,
   show_hover_read_only: bool,
-  rel_pos: (f32, f32),
-  abs_pos: (f32, f32)
+  rel_pos_size: Rect,
+  abs_pos_size: Rect,
 }
 
 pub trait UiNode {
@@ -52,7 +53,7 @@ pub trait UiNode {
     cursor_icon: &mut CursorIcon,
     mouse_pos: &(f32, f32),
     mouse_delta: &(f32, f32),
-    relative_origin: &(f32, f32),
+    parent_rect: &Rect,
   ) {
     // handle dragging
     let prev_state = self.node_fetch_prev();
@@ -60,20 +61,20 @@ pub trait UiNode {
     new_state.event = UiEvent::None;
     if prev_state.draggable_read_only && prev_state.holding {
       // update positions by being dragged
-      new_state.abs_pos.0 += mouse_delta.0;
-      new_state.abs_pos.1 += mouse_delta.1;
-      new_state.rel_pos.0 += mouse_delta.0;
-      new_state.rel_pos.1 += mouse_delta.1;
+      new_state.abs_pos_size.x += mouse_delta.0;
+      new_state.abs_pos_size.y += mouse_delta.1;
+      new_state.rel_pos_size.x += mouse_delta.0;
+      new_state.rel_pos_size.y += mouse_delta.1;
     } else {
       // maintain relative position from parent
-      new_state.abs_pos.0 = relative_origin.0 + prev_state.rel_pos.0;
-      new_state.abs_pos.1 = relative_origin.1 + prev_state.rel_pos.1;
+      new_state.abs_pos_size.x = parent_rect.x + prev_state.rel_pos_size.x;
+      new_state.abs_pos_size.y = parent_rect.y + prev_state.rel_pos_size.y;
     }
     // handle children, in reverse order
     match self.get_children_mut() {
       Some(children) => {
         for i in (0..children.len()).rev() {
-          children[i].call_update(can_act, action, cursor_icon, mouse_pos, mouse_delta, &new_state.abs_pos);
+          children[i].call_update(can_act, action, cursor_icon, mouse_pos, mouse_delta, &new_state.abs_pos_size);
         }
       }
       None => ()
@@ -94,18 +95,20 @@ pub trait UiNode {
       if is_mouse_button_pressed(MouseButton::Left) {
         new_state.event = UiEvent::LClick;
         new_state.holding = true;
-        *cursor_icon = CursorIcon::Pointer;
+        if prev_state.show_hover_read_only {
+          *cursor_icon = CursorIcon::Pointer;
+        }
       } else if is_mouse_button_released(MouseButton::Left) {
         if prev_state.holding {
           new_state.event = UiEvent::LRelease;
         }
         new_state.holding = false;
-        *cursor_icon = CursorIcon::Pointer;
+        if prev_state.show_hover_read_only {
+          *cursor_icon = CursorIcon::Pointer;
+        }
       } else if is_mouse_button_down(MouseButton::Left) {
         new_state.event = UiEvent::Hold;
-        if mouse_delta.0 > 2.0 || mouse_delta.1 > 2.0 {
-          *cursor_icon = CursorIcon::Move;
-        } else {
+        if prev_state.show_hover_read_only {
           *cursor_icon = CursorIcon::Pointer;
         }
       } else if is_mouse_button_pressed(MouseButton::Right) {
@@ -191,11 +194,11 @@ impl<'a> UiRoot<'a> {
       mouse_pos.1 - self.prev_mouse_pos.1
     );
     self.prev_mouse_pos = mouse_pos;
-    let top_left = (0.0, 0.0);
+    let scrn = Rect::new(0.0, 0.0, window::screen_width(), window::screen_height());
     // recursively update all nodes in tree
     for i in (0..self.children.len()).rev() {
       self.children[i].call_update(
-        &mut action_available, &mut action, &mut cursor_icon, &mouse_pos, &mouse_delta, &top_left
+        &mut action_available, &mut action, &mut cursor_icon, &mouse_pos, &mouse_delta, &scrn
       );
     }
     // update mouse cursor
@@ -242,18 +245,16 @@ impl UiNode for UiBox {
       holding: self.holding,
       id_read_only: self.id,
       draggable_read_only: self.draggable,
-      show_hover_read_only: true,
-      rel_pos: (self.rel_pos_size.x, self.rel_pos_size.y),
-      abs_pos: (self.abs_pos_size.x, self.abs_pos_size.y)
+      show_hover_read_only: self.show_hover,
+      rel_pos_size: self.rel_pos_size.clone(),
+      abs_pos_size: self.abs_pos_size.clone(),
     }
   }
   fn node_set(&mut self, update: UiNodeParams) {
     self.event = update.event;
     self.holding = update.holding;
-    self.abs_pos_size.x = update.abs_pos.0;
-    self.abs_pos_size.y = update.abs_pos.1;
-    self.rel_pos_size.x = update.rel_pos.0;
-    self.rel_pos_size.y = update.rel_pos.1;
+    self.abs_pos_size = update.abs_pos_size;
+    self.rel_pos_size = update.rel_pos_size;
   }
   fn update(&mut self) { /* internal state updates */ }
   fn render(&self, _theme: &UiTheme) {
@@ -262,9 +263,9 @@ impl UiNode for UiBox {
       _ => self.color
     };
     draw_rectangle(
-      self.abs_pos_size.x - 2.0,
+      self.abs_pos_size.x - 1.0,
       self.abs_pos_size.y - 1.0,
-      self.abs_pos_size.w + 5.0,
+      self.abs_pos_size.w + 4.0,
       self.abs_pos_size.h + 6.0,
       self.shadow_color,
     );
@@ -307,9 +308,10 @@ pub struct UiButton {
   id: u32,
   abs_pos_size: Rect,
   rel_pos_size: Rect,
-  color: Color,
-  hover_color: Color,
-  down_color: Color,
+  pub color: Color,
+  pub hover_color: Color,
+  pub down_color: Color,
+  pub text_color: Color,
   text: String,
   holding: bool,
   event: UiEvent,
@@ -331,17 +333,15 @@ impl UiNode for UiButton {
       id_read_only: self.id,
       draggable_read_only: false,
       show_hover_read_only: true,
-      rel_pos: (self.rel_pos_size.x, self.rel_pos_size.y),
-      abs_pos: (self.abs_pos_size.x, self.abs_pos_size.y)
+      rel_pos_size: self.rel_pos_size.clone(),
+      abs_pos_size: self.abs_pos_size.clone(),
     }
   }
   fn node_set(&mut self, update: UiNodeParams) {
     self.event = update.event;
     self.holding = update.holding;
-    self.abs_pos_size.x = update.abs_pos.0;
-    self.abs_pos_size.y = update.abs_pos.1;
-    self.rel_pos_size.x = update.rel_pos.0;
-    self.rel_pos_size.y = update.rel_pos.1;
+    self.abs_pos_size = update.abs_pos_size;
+    self.rel_pos_size = update.rel_pos_size;
   }
   fn update(&mut self) { /* internal state updates */ }
   fn render(&self, theme: &UiTheme) {
@@ -364,6 +364,7 @@ impl UiNode for UiButton {
     draw_text_ex(&self.text, txt_x, txt_y, TextParams {
       font: theme.font,
       font_size: theme.font_size,
+      color: self.text_color,
       ..Default::default()
     });
     // draw border
@@ -389,6 +390,67 @@ impl UiButton {
       color: GRAY,
       hover_color: DARKGRAY,
       down_color: DARKBLUE,
+      text_color: BLACK,
+    }
+  }
+}
+
+#[derive(Debug)]
+pub struct UiText {
+  id: u32,
+  abs_pos_size: Rect,
+  rel_pos_size: Rect,
+  pub color: Color,
+  pub text: String,
+  event: UiEvent,
+}
+impl UiNode for UiText {
+  fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>> {
+    None
+  }
+  fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn UiNode>>> {
+    None
+  }
+  fn is_mouse_in_bounds(&self, _mouse_pos: &(f32, f32)) -> bool {
+    false
+  }
+  fn node_fetch_prev(&self) -> UiNodeParams {
+    UiNodeParams {
+      event: self.event.clone(),
+      holding: false,
+      id_read_only: self.id,
+      draggable_read_only: false,
+      show_hover_read_only: false,
+      rel_pos_size: self.rel_pos_size,
+      abs_pos_size: self.abs_pos_size,
+    }
+  }
+  fn node_set(&mut self, update: UiNodeParams) {
+    self.event = update.event;
+    self.abs_pos_size = update.abs_pos_size;
+    self.rel_pos_size = update.rel_pos_size;
+  }
+  fn update(&mut self) { /* internal state updates */ }
+  fn render(&self, theme: &UiTheme) {
+    let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
+    let txt_y = self.abs_pos_size.y + txt_size.height / 2.0;
+    draw_text_ex(&self.text, self.abs_pos_size.x, txt_y, TextParams {
+      font: theme.font,
+      font_size: theme.font_size,
+      color: self.color,
+      ..Default::default()
+    });
+  }
+}
+impl UiText {
+  pub fn new(id: u32, pos_size: Rect, text: String) -> Self {
+    Self {
+      id,
+      abs_pos_size: pos_size,
+      rel_pos_size: pos_size,
+      color: BLACK,
+      text,
+      event: UiEvent::None,
     }
   }
 }

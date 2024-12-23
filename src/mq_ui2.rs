@@ -39,14 +39,13 @@ pub trait UiNode {
   fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>>;
   fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn UiNode>>>;
   fn is_mouse_in_bounds(&self, mouse_pos: &(f32, f32)) -> bool;
-  fn update(&mut self);
   fn render(&self, theme: &UiTheme);
   /// fetch existing state for ui component
   fn node_fetch_prev(&self) -> UiNodeParams;
   /// pass back updated state for ui component
   fn node_set(&mut self, update: UiNodeParams);
   /// recursively calls update on all components - DO NOT REIMPLEMENT
-  fn call_update(
+  fn node_update(
     &mut self,
     can_act: &mut bool,
     action: &mut Option<(u32, UiEvent)>,
@@ -74,7 +73,7 @@ pub trait UiNode {
     match self.get_children_mut() {
       Some(children) => {
         for i in (0..children.len()).rev() {
-          children[i].call_update(can_act, action, cursor_icon, mouse_pos, mouse_delta, &new_state.abs_pos_size);
+          children[i].node_update(can_act, action, cursor_icon, mouse_pos, mouse_delta, &new_state.abs_pos_size);
         }
       }
       None => ()
@@ -125,7 +124,6 @@ pub trait UiNode {
       new_state.event = UiEvent::LClickOuter;
     }
     self.node_set(new_state);
-    self.update();
   }
   /// recursively calls render on all components - DO NOT REIMPLEMENT
   fn call_render(&self, theme: &UiTheme) {
@@ -197,7 +195,7 @@ impl<'a> UiRoot<'a> {
     let scrn = Rect::new(0.0, 0.0, window::screen_width(), window::screen_height());
     // recursively update all nodes in tree
     for i in (0..self.children.len()).rev() {
-      self.children[i].call_update(
+      self.children[i].node_update(
         &mut action_available, &mut action, &mut cursor_icon, &mouse_pos, &mouse_delta, &scrn
       );
     }
@@ -256,7 +254,6 @@ impl UiNode for UiBox {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
-  fn update(&mut self) { /* internal state updates */ }
   fn render(&self, _theme: &UiTheme) {
     let active_color = match self.event {
       UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => self.hover_color,
@@ -343,7 +340,6 @@ impl UiNode for UiButton {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
-  fn update(&mut self) { /* internal state updates */ }
   fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
       UiEvent::Hover | UiEvent::LClick => self.hover_color,
@@ -430,7 +426,6 @@ impl UiNode for UiText {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
-  fn update(&mut self) { /* internal state updates */ }
   fn render(&self, theme: &UiTheme) {
     let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
     let txt_y = self.abs_pos_size.y + txt_size.height / 2.0;

@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-use std::rc::Rc;
 use std::time::Duration;
 
 use macroquad::prelude::*;
@@ -10,8 +8,8 @@ use miniquad::conf::Platform;
 // --- --- --- - COMPONENTS -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
 mod mq_util;
-mod mq_ui;
-use mq_ui::{UiBox, UiButton, UiGlobal};
+mod mq_ui2;
+use mq_ui2::{UiRoot, UiBox};
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -87,36 +85,19 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
-    let ui_global = UiGlobal::new().with_font(&font);
-    let ui_glb = Rc::new(RefCell::new(ui_global));
-    let mut box1 = UiBox::new(
-        Rc::clone(&ui_glb),
-        Rect { x: 10.0, y: 100.0, w: 200.0, h: 100.0 },
-        true, false
-    );
-    let mut box2 = UiBox::new(
-        Rc::clone(&ui_glb),
-        Rect { x: 40.0, y: 120.0, w: 100.0, h: 250.0 },
-        true, true
-    );
-    let mut btn3 = UiButton::new(
-        Rc::clone(&ui_glb),
-        Rect { x: 100.0, y: 100.0, w: 100.0, h: 40.0 },
-        "Click me".to_owned()
-    );
-    box2.attach_child(btn3.get_id());
+    let box1 = UiBox::new(Rect::new(10.0, 10.0, 200.0, 60.0), false, true);
+    let box2 = UiBox::new(Rect::new(40.0, 60.0, 100.0, 100.0), true, true)
+        .with_child(Box::new(box1));
+    let box3 = UiBox::new(Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
+    let mut ui = UiRoot::new()
+        .with_child(Box::new(box2))
+        .with_child(Box::new(box3));
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {
         let win_size = (window::screen_width(), window::screen_height());
         update_bg_color(&mut bg_color, &win_size);
-        ui_glb.borrow_mut().update_start();
-        if btn3.update() {
-            println!("Clicked btn");
-        };
-        box2.update();
-        box1.update();
-        ui_glb.borrow_mut().update_end();
+        ui.update();
 
         // start render
         clear_background(bg_color);
@@ -124,9 +105,7 @@ async fn main() {
         draw_poly(win_size.0 / 2.0 + 3.0, win_size.1 / 2.0 + 2.0, 64, 106.0, 0.0, BLACK);
         draw_poly(win_size.0 / 2.0, win_size.1 / 2.0, 64, 100.0, 0.0, RED);
         // draw ui
-        box1.render();
-        box2.render();
-        btn3.render();
+        ui.render();
         fps_counter.update();
 
         // delay to next frame

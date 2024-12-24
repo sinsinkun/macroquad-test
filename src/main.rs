@@ -7,9 +7,8 @@ use miniquad::conf::Platform;
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- - COMPONENTS -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
-mod mq_util;
-mod mq_ui3;
-use mq_ui3::*;
+mod mq_ui;
+use mq_ui::*;
 
 #[derive(Debug)]
 struct FpsCounter<'a> {

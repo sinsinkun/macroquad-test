@@ -8,8 +8,8 @@ use miniquad::conf::Platform;
 // --- --- --- - COMPONENTS -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
 mod mq_util;
-mod mq_ui2;
-use mq_ui2::*;
+mod mq_ui3;
+use mq_ui3::*;
 
 #[derive(Debug)]
 struct FpsCounter<'a> {
@@ -85,26 +85,44 @@ async fn main() {
 
     // states
     let mut fps_counter = FpsCounter::new(Some(&font));
-    let mut ui   = UiRoot::new().with_theme(UiTheme { font: Some(&font), font_size: 18 });
-    let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 100.0, 150.0), true, false);
-    let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, false);
-    let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
+    let mut ui   = UiRoot::new().with_theme(UiTheme {
+        font: Some(&font),
+        font_size: 18,
+        ..Default::default()
+    });
+    let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 100.0, 150.0), true, true);
+    let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, true);
+    let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, true);
     let btn4     = UiButton::new(4, Rect::new(10.0, 40.0, 100.0, 30.0), "Button".to_owned());
-    let txt5     = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned());
-    box1.add_child(box2);
-    box3.add_child(btn4);
-    box3.add_child(txt5);
-    ui.add_child(box1);
-    ui.add_child(box3);
+    let txt5     = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
+    box1.add_child(UiElement::Box(box2));
+    box3.add_child(UiElement::Button(btn4));
+    box3.add_child(UiElement::Text(txt5));
+    ui.add_child(UiElement::Box(box1));
+    ui.add_child(UiElement::Box(box3));
     let mut bg_color = Color::from_rgba(60, 60, 60, 255);
 
     loop {
         let win_size = (window::screen_width(), window::screen_height());
         update_bg_color(&mut bg_color, &win_size);
-        if let Some((id, event)) = ui.update() {
-            match event {
-                UiEvent::LClick => { println!("Clicked node {id}") }
-                UiEvent::LRelease => { println!("Released node {id}") }
+        if let Some(elem) = ui.update() {
+            match elem {
+                UiElement::Box(e) => {
+                    if e.event == UiEvent::LClick {
+                        println!("Clicked box {}", e.id);
+                    }
+                    if e.event == UiEvent::LRelease {
+                        println!("Released box {}", e.id);
+                    }
+                }
+                UiElement::Button(e) => {
+                    if e.event == UiEvent::LClick {
+                        println!("Clicked btn {}", e.id);
+                    }
+                    if e.event == UiEvent::LRelease {
+                        println!("Released btn {}", e.id);
+                    }
+                }
                 _ => ()
             };
         }

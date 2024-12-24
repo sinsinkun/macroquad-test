@@ -36,6 +36,7 @@ impl UiBox {
     mouse_delta: &(f32, f32),
     l_mouse: &UiMouseAction,
     r_mouse: &UiMouseAction,
+    time_delta: &f32,
   ) {
     update_position(
       &mut self.abs_origin,
@@ -53,7 +54,8 @@ impl UiBox {
       mouse_pos,
       mouse_delta,
       l_mouse,
-      r_mouse
+      r_mouse,
+      time_delta,
     );
     // update self
     let bounds = Rect {

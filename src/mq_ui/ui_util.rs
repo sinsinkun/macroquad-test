@@ -1,6 +1,16 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
+pub fn point_in_rect(point: &(f32, f32), rect: &Rect) -> bool {
+  let x_in = 
+    if point.0 > rect.x && point.0 < rect.x + rect.w { true }
+    else { false };
+  let y_in =
+    if point.1 > rect.y && point.1 < rect.y + rect.h { true }
+    else { false };
+  x_in && y_in
+}
+
 pub(crate) fn get_mouse_actions() -> (UiMouseAction, UiMouseAction) {
   let mut l_mouse = UiMouseAction::None;
   let mut r_mouse = UiMouseAction::None;
@@ -41,21 +51,22 @@ pub(crate) fn update_children(
   mouse_delta: &(f32, f32),
   l_mouse: &UiMouseAction,
   r_mouse: &UiMouseAction,
+  time_delta: &f32,
 ) {
   // update children in reverse order
   for elem in children.iter_mut().rev() {
     match elem {
       UiElement::Box(e) => {
-        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
       UiElement::Text(e) => {
-        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
       }
       UiElement::Button(e) => {
-        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
       }
       UiElement::Input(e) => {
-        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
     }
   }
@@ -72,7 +83,7 @@ pub(crate) fn render_children(children: &Vec<UiElement>, theme: &UiTheme) {
   }
 }
 
-pub(crate) fn update_event<'a>(
+pub(crate) fn update_event(
   action_available: &mut bool,
   inbounds: bool,
   holding: &mut bool,
@@ -112,12 +123,71 @@ pub(crate) fn update_event<'a>(
   evt
 }
 
-pub fn point_in_rect(point: &(f32, f32), rect: &Rect) -> bool {
-  let x_in = 
-    if point.0 > rect.x && point.0 < rect.x + rect.w { true }
-    else { false };
-  let y_in =
-    if point.1 > rect.y && point.1 < rect.y + rect.h { true }
-    else { false };
-  x_in && y_in
+pub(crate) fn key_code_to_char(k: &KeyCode) -> (&str, &str) {
+  match k {
+    KeyCode::Space => (" ", " "),
+    KeyCode::Apostrophe => ("\'", "\""),
+    KeyCode::Comma => (",", "<"),
+    KeyCode::Minus => ("-", "_"),
+    KeyCode::Period => (".", ">"),
+    KeyCode::Slash => ("/", "?"),
+    KeyCode::Key0 => ("0", ")"),
+    KeyCode::Key1 => ("1", "!"),
+    KeyCode::Key2 => ("2", "@"),
+    KeyCode::Key3 => ("3", "#"),
+    KeyCode::Key4 => ("4", "$"),
+    KeyCode::Key5 => ("5", "%"),
+    KeyCode::Key6 => ("6", "^"),
+    KeyCode::Key7 => ("7", "&"),
+    KeyCode::Key8 => ("8", "*"),
+    KeyCode::Key9 => ("9", "("),
+    KeyCode::Semicolon => (";", ":"),
+    KeyCode::Equal => ("=", "+"),
+    KeyCode::A => ("a", "A"),
+    KeyCode::B => ("b", "B"),
+    KeyCode::C => ("c", "C"),
+    KeyCode::D => ("d", "D"),
+    KeyCode::E => ("e", "E"),
+    KeyCode::F => ("f", "F"),
+    KeyCode::G => ("g", "G"),
+    KeyCode::H => ("h", "H"),
+    KeyCode::I => ("i", "I"),
+    KeyCode::J => ("j", "J"),
+    KeyCode::K => ("k", "K"),
+    KeyCode::L => ("l", "L"),
+    KeyCode::M => ("m", "M"),
+    KeyCode::N => ("n", "N"),
+    KeyCode::O => ("o", "O"),
+    KeyCode::P => ("p", "P"),
+    KeyCode::Q => ("q", "Q"),
+    KeyCode::R => ("r", "R"),
+    KeyCode::S => ("s", "S"),
+    KeyCode::T => ("t", "T"),
+    KeyCode::U => ("u", "U"),
+    KeyCode::V => ("v", "V"),
+    KeyCode::W => ("w", "W"),
+    KeyCode::X => ("x", "X"),
+    KeyCode::Y => ("y", "Y"),
+    KeyCode::Z => ("z", "Z"),
+    KeyCode::LeftBracket => ("[", "{"),
+    KeyCode::Backslash => ("\\", "|"),
+    KeyCode::RightBracket => ("]", "}"),
+    KeyCode::GraveAccent => ("`", "~"),
+    KeyCode::Kp0 => ("0", "0"),
+    KeyCode::Kp1 => ("1", "1"),
+    KeyCode::Kp2 => ("2", "2"),
+    KeyCode::Kp3 => ("3", "3"),
+    KeyCode::Kp4 => ("4", "4"),
+    KeyCode::Kp5 => ("5", "5"),
+    KeyCode::Kp6 => ("6", "6"),
+    KeyCode::Kp7 => ("7", "7"),
+    KeyCode::Kp8 => ("8", "8"),
+    KeyCode::Kp9 => ("9", "9"),
+    KeyCode::KpDecimal => (".", "."),
+    KeyCode::KpDivide => ("/", "/"),
+    KeyCode::KpMultiply => ("*", "*"),
+    KeyCode::KpSubtract => ("-", "-"),
+    KeyCode::KpAdd => ("+", "+"),
+    _ => ("", "")
+  }
 }

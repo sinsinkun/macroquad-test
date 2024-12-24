@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
@@ -13,6 +14,8 @@ pub struct UiInput {
   pub is_active: bool,
   pub input: String,
   pub placeholder: String,
+  blink_counter: f32,
+  show_blink: bool,
 }
 impl UiInput {
   pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
@@ -26,6 +29,8 @@ impl UiInput {
       is_active: false,
       input: String::new(),
       placeholder,
+      blink_counter: 0.0,
+      show_blink: false,
     }
   }
   pub(crate) fn update(
@@ -36,6 +41,7 @@ impl UiInput {
     mouse_delta: &(f32, f32),
     l_mouse: &UiMouseAction,
     r_mouse: &UiMouseAction,
+    time_delta: &f32,
   ) {
     update_position(
       &mut self.abs_origin,
@@ -72,6 +78,26 @@ impl UiInput {
     // take input
     if self.is_active {
       // register key inputs
+      let shift = is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift);
+      let pressed: HashSet<KeyCode> = get_keys_pressed();
+      for key_code in pressed.iter() {
+        if key_code == &KeyCode::Backspace {
+          self.input.pop();
+          continue;
+        }
+        let cc = key_code_to_char(key_code);
+        let c = if shift { cc.1 } else { cc.0 };
+        self.input += c;
+      }
+      // update blinker state
+      self.blink_counter += time_delta;
+      if self.blink_counter > 0.5 {
+        self.show_blink = !self.show_blink;
+        self.blink_counter = 0.0;
+      }
+    } else {
+      self.blink_counter = 0.0;
+      self.show_blink = false;
     }
     // clone self into target
     if !action_available && target.is_none() {
@@ -92,10 +118,11 @@ impl UiInput {
       self.size.1,
       active_color,
     );
+    // draw text
+    let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
+    let txt_x = self.abs_origin.0 + 3.0;
+    let txt_y = self.abs_origin.1 + self.size.1 - 10.0;
     if self.is_active || !self.input.is_empty() {
-      let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
-      let txt_x = self.abs_origin.0 + 5.0;
-      let txt_y = self.abs_origin.1 + 5.0 + txt_size.height;
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {
         font: theme.font,
         font_size: theme.font_size,
@@ -103,15 +130,18 @@ impl UiInput {
         ..Default::default()
       });
     } else if !self.placeholder.is_empty() {
-      let txt_size = measure_text(&self.placeholder, theme.font, theme.font_size, 1.0);
-      let txt_x = self.abs_origin.0 + 5.0;
-      let txt_y = self.abs_origin.1 + 5.0 + txt_size.height;
       draw_text_ex(&self.placeholder, txt_x, txt_y, TextParams {
         font: theme.font,
         font_size: theme.font_size,
         color: theme.contrast_color_plus(30.0),
         ..Default::default()
       });
+    }
+    // draw blinker
+    if self.is_active && self.show_blink {
+      let blinker_x = self.abs_origin.0 + txt_size.width + 3.0;
+      let blinker_y = self.abs_origin.1 + 2.0;
+      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, BLACK);
     }
     // draw border
     draw_rectangle_lines(

@@ -33,6 +33,7 @@ impl<'a> UiRoot<'a> {
     self.prev_mouse_pos = mouse_pos;
     let origin = (0.0, 0.0);
     let (l_mouse, r_mouse) = get_mouse_actions();
+    let t_delta = get_frame_time();
     // update children
     update_children(
       &mut self.children,
@@ -41,7 +42,8 @@ impl<'a> UiRoot<'a> {
       &mouse_pos,
       &mouse_delta,
       &l_mouse,
-      &r_mouse
+      &r_mouse,
+      &t_delta,
     );
     // update cursor
     let mut cursor_icon = CursorIcon::Default;

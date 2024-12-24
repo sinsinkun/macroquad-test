@@ -90,12 +90,14 @@ async fn main() {
         font_size: 18,
         ..Default::default()
     });
-    let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 100.0, 150.0), true, true);
-    let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, true);
-    let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, true);
+    let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 110.0, 150.0), true, true);
+    let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, false);
+    let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
     let btn4     = UiButton::new(4, Rect::new(10.0, 40.0, 100.0, 30.0), "Button".to_owned());
     let txt5     = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
+    let input6   = UiInput::new(6, Rect::new(5.0, 10.0, 100.0, 30.0), "Input".to_owned());
     box1.add_child(UiElement::Box(box2));
+    box1.add_child(UiElement::Input(input6));
     box3.add_child(UiElement::Button(btn4));
     box3.add_child(UiElement::Text(txt5));
     ui.add_child(UiElement::Box(box1));
@@ -107,14 +109,6 @@ async fn main() {
         update_bg_color(&mut bg_color, &win_size);
         if let Some(elem) = ui.update() {
             match elem {
-                UiElement::Box(e) => {
-                    if e.event == UiEvent::LClick {
-                        println!("Clicked box {}", e.id);
-                    }
-                    if e.event == UiEvent::LRelease {
-                        println!("Released box {}", e.id);
-                    }
-                }
                 UiElement::Button(e) => {
                     if e.event == UiEvent::LClick {
                         println!("Clicked btn {}", e.id);

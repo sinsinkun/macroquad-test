@@ -19,8 +19,6 @@ pub struct UiTheme<'a> {
   pub font_size: u16,
   pub base_color: Color,
   pub contrast_color: Color,
-  pub high_color: Color,
-  pub low_color: Color,
   pub accent_color_1: Color,
   pub accent_color_2: Color,
   pub shadow_color: Color,
@@ -32,12 +30,28 @@ impl Default for UiTheme<'_> {
       font_size: 18,
       base_color: colors::GRAY,
       contrast_color: colors::BLACK,
-      high_color: colors::LIGHTGRAY,
-      low_color: colors::DARKGRAY,
       accent_color_1: colors::BLUE,
       accent_color_2: colors::LIME,
       shadow_color: Color::from_rgba(0, 0, 0, 120),
     }
+  }
+}
+impl UiTheme<'_> {
+  fn base_color_plus(&self, n: f32) -> Color {
+    let val = n / 100.0;
+    let mut clr = self.base_color;
+    clr.r += val;
+    clr.g += val;
+    clr.b += val;
+    clr
+  }
+  fn contrast_color_plus(&self, n: f32) -> Color {
+    let val = n / 100.0;
+    let mut clr = self.contrast_color;
+    clr.r += val;
+    clr.g += val;
+    clr.b += val;
+    clr
   }
 }
 
@@ -46,11 +60,24 @@ pub enum UiElement {
   Box(UiBox),
   Text(UiText),
   Button(UiButton),
+  Input(UiInput),
 }
 
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- -- -- HELPER UTILS -- -- -- --- //
 // --- --- --- --- --- --- --- --- --- --- //
+fn get_mouse_actions() -> (UiMouseAction, UiMouseAction) {
+  let mut l_mouse = UiMouseAction::None;
+  let mut r_mouse = UiMouseAction::None;
+  if is_mouse_button_pressed(MouseButton::Left) { l_mouse = UiMouseAction::Down; }
+  else if is_mouse_button_released(MouseButton::Left) { l_mouse = UiMouseAction::Release; }
+  else if is_mouse_button_down(MouseButton::Left) { l_mouse = UiMouseAction::Hold; }
+  if is_mouse_button_pressed(MouseButton::Right) { r_mouse = UiMouseAction::Down; }
+  else if is_mouse_button_released(MouseButton::Right) { r_mouse = UiMouseAction::Release; }
+  else if is_mouse_button_down(MouseButton::Right) { r_mouse = UiMouseAction::Hold; }
+  (l_mouse, r_mouse)
+}
+
 fn update_position(
   abs_origin: &mut (f32, f32),
   rel_origin: &mut (f32, f32),
@@ -68,6 +95,45 @@ fn update_position(
     // maintain relative distance from parent
     abs_origin.0 = parent_origin.0 + rel_origin.0;
     abs_origin.1 = parent_origin.1 + rel_origin.1;
+  }
+}
+
+fn update_children(
+  children: &mut Vec<UiElement>, 
+  target: &mut Option<UiElement>,
+  parent_origin: &(f32, f32),
+  mouse_pos: &(f32, f32),
+  mouse_delta: &(f32, f32),
+  l_mouse: &UiMouseAction,
+  r_mouse: &UiMouseAction,
+) {
+  // update children in reverse order
+  for elem in children.iter_mut().rev() {
+    match elem {
+      UiElement::Box(e) => {
+        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+      }
+      UiElement::Text(e) => {
+        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+      }
+      UiElement::Button(e) => {
+        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+      }
+      UiElement::Input(e) => {
+        e.update(target, parent_origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
+      }
+    }
+  }
+}
+
+fn render_children(children: &Vec<UiElement>, theme: &UiTheme) {
+  for elem in children {
+    match elem {
+      UiElement::Box(e) => { e.render(&theme); }
+      UiElement::Text(e) => { e.render(&theme); }
+      UiElement::Button(e) => { e.render(&theme); }
+      UiElement::Input(e) => { e.render(&theme); }
+    }
   }
 }
 
@@ -102,13 +168,11 @@ fn update_event<'a>(
       evt = UiEvent::RRelease;
     }
   }
-  if !inbounds {
-    if l_mouse == &UiMouseAction::Down {
-      evt = UiEvent::LClickOuter;
-    }
-    if l_mouse == &UiMouseAction::Release && *holding {
-      *holding = false;
-    }
+  if !inbounds && l_mouse == &UiMouseAction::Down {
+    evt = UiEvent::LClickOuter;
+  }
+  if l_mouse == &UiMouseAction::Release && *holding {
+    *holding = false;
   }
   evt
 }
@@ -145,43 +209,47 @@ impl<'a> UiRoot<'a> {
     );
     self.prev_mouse_pos = mouse_pos;
     let origin = (0.0, 0.0);
-    let mut l_mouse = UiMouseAction::None;
-    let mut r_mouse = UiMouseAction::None;
-    if is_mouse_button_pressed(MouseButton::Left) { l_mouse = UiMouseAction::Down; }
-    else if is_mouse_button_released(MouseButton::Left) { l_mouse = UiMouseAction::Release; }
-    else if is_mouse_button_down(MouseButton::Left) { l_mouse = UiMouseAction::Hold; }
-    if is_mouse_button_pressed(MouseButton::Right) { r_mouse = UiMouseAction::Down; }
-    else if is_mouse_button_released(MouseButton::Right) { r_mouse = UiMouseAction::Release; }
-    else if is_mouse_button_down(MouseButton::Right) { r_mouse = UiMouseAction::Hold; }
-    // update children in reverse order
-    for elem in self.children.iter_mut().rev() {
-      match elem {
-        UiElement::Box(e) => {
-          e.update(&mut action_target, &origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
-        }
-        UiElement::Text(e) => {
-          e.update(&mut action_target, &origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
-        }
-        UiElement::Button(e) => {
-          e.update(&mut action_target, &origin, &mouse_pos, &mouse_delta, &l_mouse, &r_mouse);
-        }
-      }
-    }
+    let (l_mouse, r_mouse) = get_mouse_actions();
+    // update children
+    update_children(
+      &mut self.children,
+      &mut action_target,
+      &origin,
+      &mouse_pos,
+      &mouse_delta,
+      &l_mouse,
+      &r_mouse
+    );
     // update cursor
     let mut cursor_icon = CursorIcon::Default;
     if action_target.is_some() {
-      let (event, show_hover) = match action_target.as_ref().unwrap() {
-        UiElement::Box(e) => (e.event.clone(), e.show_hover),
-        UiElement::Button(e) => (e.event.clone(), true),
-        UiElement::Text(e) => (e.event.clone(), false),
+      let event;
+      let show_hover;
+      let mut text_input = false;
+      match action_target.as_ref().unwrap() {
+        UiElement::Box(e) => {
+          event = e.event.clone();
+          show_hover = e.show_hover;
+        }
+        UiElement::Button(e) => {
+          event = e.event.clone();
+          show_hover = true;
+        }
+        UiElement::Text(e) => {
+          event = e.event.clone();
+          show_hover = false;
+        },
+        UiElement::Input(e) => {
+          event = e.event.clone();
+          show_hover = true;
+          text_input = true;
+        },
       };
       match event {
-        UiEvent::Hover => {
-          if show_hover { cursor_icon = CursorIcon::Pointer; }
+        UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => {
+          if text_input { cursor_icon = CursorIcon::Text; }
+          else if show_hover { cursor_icon = CursorIcon::Pointer; }
           else { cursor_icon = CursorIcon::Default; }
-        }
-        UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => {
-          cursor_icon = CursorIcon::Pointer;
         }
         _ => ()
       };
@@ -191,13 +259,7 @@ impl<'a> UiRoot<'a> {
     action_target
   }
   pub fn render(&self) {
-    for elem in &self.children {
-      match elem {
-        UiElement::Box(e) => { e.render(&self.theme); }
-        UiElement::Text(e) => { e.render(&self.theme); }
-        UiElement::Button(e) => { e.render(&self.theme); }
-      }
-    }
+    render_children(&self.children, &self.theme);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);
@@ -247,20 +309,16 @@ impl UiBox {
       self.draggable,
       self.holding,
     );
-    // update children in reverse order
-    for elem in self.children.iter_mut().rev() {
-      match elem {
-        UiElement::Box(e) => {
-          e.update(target, &self.abs_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
-        }
-        UiElement::Text(e) => {
-          e.update(target, &self.abs_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
-        }
-        UiElement::Button(e) => {
-          e.update(target, &self.abs_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
-        }
-      }
-    }
+    // update children
+    update_children(
+      &mut self.children,
+      target,
+      &self.abs_origin,
+      mouse_pos,
+      mouse_delta,
+      l_mouse,
+      r_mouse
+    );
     // update self
     let bounds = Rect {
       x: self.abs_origin.0, y: self.abs_origin.1, w: self.size.0, h: self.size.1
@@ -282,7 +340,7 @@ impl UiBox {
   }
   fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.high_color,
+      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.base_color_plus(20.0),
       _ => theme.base_color
     };
     draw_rectangle(
@@ -300,13 +358,7 @@ impl UiBox {
       active_color,
     );
     // render children
-    for elem in &self.children {
-      match elem {
-        UiElement::Box(e) => { e.render(theme); }
-        UiElement::Text(e) => { e.render(theme); }
-        UiElement::Button(e) => { e.render(theme); }
-      }
-    }
+    render_children(&self.children, theme);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);
@@ -445,9 +497,9 @@ impl UiButton {
   }
   fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::LClick => theme.high_color,
-      UiEvent::Hold | UiEvent::LRelease => theme.accent_color_1,
-      _ => theme.base_color
+      UiEvent::Hover | UiEvent::LClick => theme.base_color_plus(20.0),
+      UiEvent::Hold | UiEvent::LRelease => theme.base_color_plus(40.0),
+      _ => theme.base_color_plus(10.0)
     };
     draw_rectangle(
       self.abs_origin.0,
@@ -466,6 +518,129 @@ impl UiButton {
       color: theme.contrast_color,
       ..Default::default()
     });
+    // draw border
+    draw_rectangle_lines(
+      self.abs_origin.0,
+      self.abs_origin.1,
+      self.size.0,
+      self.size.1,
+      1.5,
+      BLACK,
+    );
+  }
+}
+
+#[derive(Debug, Clone)]
+pub struct UiInput {
+  pub id: u32,
+  pub event: UiEvent,
+  holding: bool,
+  origin: (f32, f32),
+  abs_origin: (f32, f32),
+  size: (f32, f32),
+  is_active: bool,
+  pub input: String,
+  pub placeholder: String,
+}
+impl UiInput {
+  pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
+    Self {
+      id,
+      event: UiEvent::None,
+      holding: false,
+      origin: (pos_size.x, pos_size.y),
+      abs_origin: (pos_size.x, pos_size.y),
+      size: (pos_size.w, pos_size.h),
+      is_active: false,
+      input: String::new(),
+      placeholder,
+    }
+  }
+  fn update(
+    &mut self,
+    target: &mut Option<UiElement>,
+    parent_origin: &(f32, f32),
+    mouse_pos: &(f32, f32),
+    mouse_delta: &(f32, f32),
+    l_mouse: &UiMouseAction,
+    r_mouse: &UiMouseAction,
+  ) {
+    update_position(
+      &mut self.abs_origin,
+      &mut self.origin,
+      parent_origin,
+      mouse_delta,
+      false,
+      self.holding,
+    );
+    // update self
+    let bounds = Rect {
+      x: self.abs_origin.0, y: self.abs_origin.1, w: self.size.0, h: self.size.1
+    };
+    let inbounds = point_in_rect(mouse_pos, &bounds);
+    let mut action_available = target.is_none();
+    self.event = update_event(
+      &mut action_available,
+      inbounds,
+      &mut self.holding,
+      &self.event,
+      l_mouse,
+      r_mouse,
+    );
+    // toggle active state
+    match self.event {
+      UiEvent::LRelease => {
+        self.is_active = !self.is_active;
+      }
+      UiEvent::LClickOuter => {
+        self.is_active = false;
+      }
+      _ => ()
+    };
+    // take input
+    if self.is_active {
+      // register key inputs
+    }
+    // clone self into target
+    if !action_available && target.is_none() {
+      target.replace(UiElement::Input(self.clone()));
+    }
+  }
+  fn render(&self, theme: &UiTheme) {
+    let mut active_color = match self.event {
+      UiEvent::Hover | UiEvent::LClick => theme.base_color_plus(20.0),
+      UiEvent::Hold | UiEvent::LRelease => theme.base_color_plus(30.0),
+      _ => theme.base_color_plus(10.0)
+    };
+    if self.is_active { active_color = theme.base_color_plus(30.0) };
+    draw_rectangle(
+      self.abs_origin.0,
+      self.abs_origin.1,
+      self.size.0,
+      self.size.1,
+      active_color,
+    );
+    if self.is_active || !self.input.is_empty() {
+      let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
+      let txt_x = self.abs_origin.0 + 5.0;
+      let txt_y = self.abs_origin.1 + 5.0 + txt_size.height;
+      draw_text_ex(&self.input, txt_x, txt_y, TextParams {
+        font: theme.font,
+        font_size: theme.font_size,
+        color: theme.contrast_color,
+        ..Default::default()
+      });
+    } else if !self.placeholder.is_empty() {
+      let txt_size = measure_text(&self.placeholder, theme.font, theme.font_size, 1.0);
+      let txt_x = self.abs_origin.0 + 5.0;
+      let txt_y = self.abs_origin.1 + 5.0 + txt_size.height;
+      draw_text_ex(&self.placeholder, txt_x, txt_y, TextParams {
+        font: theme.font,
+        font_size: theme.font_size,
+        color: theme.contrast_color_plus(30.0),
+        ..Default::default()
+      });
+    }
     // draw border
     draw_rectangle_lines(
       self.abs_origin.0,

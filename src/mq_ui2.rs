@@ -39,6 +39,7 @@ pub trait UiNode {
   fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>>;
   fn get_children_mut(&mut self) -> Option<&mut Vec<Box<dyn UiNode>>>;
   fn is_mouse_in_bounds(&self, mouse_pos: &(f32, f32)) -> bool;
+  fn update(&mut self);
   fn render(&self, theme: &UiTheme);
   /// fetch existing state for ui component
   fn node_fetch_prev(&self) -> UiNodeParams;
@@ -124,6 +125,7 @@ pub trait UiNode {
       new_state.event = UiEvent::LClickOuter;
     }
     self.node_set(new_state);
+    self.update();
   }
   /// recursively calls render on all components - DO NOT REIMPLEMENT
   fn call_render(&self, theme: &UiTheme) {
@@ -216,14 +218,14 @@ pub struct UiBox {
   id: u32,
   abs_pos_size: Rect,
   rel_pos_size: Rect,
-  pub color: Color,
-  pub hover_color: Color,
-  pub shadow_color: Color,
+  holding: bool,
+  event: UiEvent,
   children: Vec<Box<dyn UiNode>>,
   draggable: bool,
   show_hover: bool,
-  holding: bool,
-  event: UiEvent,
+  pub color: Color,
+  pub hover_color: Color,
+  pub shadow_color: Color,
 }
 impl UiNode for UiBox {
   fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>> {
@@ -254,6 +256,7 @@ impl UiNode for UiBox {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
+  fn update(&mut self) {}
   fn render(&self, _theme: &UiTheme) {
     let active_color = match self.event {
       UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => self.hover_color,
@@ -305,13 +308,13 @@ pub struct UiButton {
   id: u32,
   abs_pos_size: Rect,
   rel_pos_size: Rect,
+  holding: bool,
+  event: UiEvent,
   pub color: Color,
   pub hover_color: Color,
   pub down_color: Color,
   pub text_color: Color,
   text: String,
-  holding: bool,
-  event: UiEvent,
 }
 impl UiNode for UiButton {
   fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>> {
@@ -330,8 +333,8 @@ impl UiNode for UiButton {
       id_read_only: self.id,
       draggable_read_only: false,
       show_hover_read_only: true,
-      rel_pos_size: self.rel_pos_size.clone(),
-      abs_pos_size: self.abs_pos_size.clone(),
+      rel_pos_size: self.rel_pos_size,
+      abs_pos_size: self.abs_pos_size,
     }
   }
   fn node_set(&mut self, update: UiNodeParams) {
@@ -340,6 +343,7 @@ impl UiNode for UiButton {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
+  fn update(&mut self) {}
   fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
       UiEvent::Hover | UiEvent::LClick => self.hover_color,
@@ -383,9 +387,9 @@ impl UiButton {
       text,
       holding: false,
       event: UiEvent::None,
-      color: GRAY,
-      hover_color: DARKGRAY,
-      down_color: DARKBLUE,
+      color: LIGHTGRAY,
+      hover_color: GRAY,
+      down_color: DARKGRAY,
       text_color: BLACK,
     }
   }
@@ -396,9 +400,9 @@ pub struct UiText {
   id: u32,
   abs_pos_size: Rect,
   rel_pos_size: Rect,
+  event: UiEvent,
   pub color: Color,
   pub text: String,
-  event: UiEvent,
 }
 impl UiNode for UiText {
   fn get_children(&self) -> Option<&Vec<Box<dyn UiNode>>> {
@@ -426,6 +430,7 @@ impl UiNode for UiText {
     self.abs_pos_size = update.abs_pos_size;
     self.rel_pos_size = update.rel_pos_size;
   }
+  fn update(&mut self) {}
   fn render(&self, theme: &UiTheme) {
     let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
     let txt_y = self.abs_pos_size.y + txt_size.height / 2.0;

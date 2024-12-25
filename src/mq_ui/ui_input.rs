@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct UiInput {
   pub id: u32,
@@ -16,8 +15,10 @@ pub struct UiInput {
   pub placeholder: String,
   blink_counter: f32,
   show_blink: bool,
+  bksp_cooldown: f32,
   target: RenderTarget,
 }
+#[allow(unused)]
 impl UiInput {
   pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
     let target = render_target_msaa(pos_size.w as u32, pos_size.h as u32, 4);
@@ -33,6 +34,7 @@ impl UiInput {
       placeholder,
       blink_counter: 0.0,
       show_blink: false,
+      bksp_cooldown: 0.0,
       target,
     }
   }
@@ -82,12 +84,17 @@ impl UiInput {
     if self.is_active {
       // register key inputs
       let shift = is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift);
+      if is_key_down(KeyCode::Backspace) && !self.input.is_empty() {
+        if self.bksp_cooldown > 0.0 {
+          self.bksp_cooldown -= time_delta;
+        }
+        if self.bksp_cooldown <= 0.0 {
+          self.input.pop();
+          self.bksp_cooldown = 0.06;
+        }
+      }
       let pressed: HashSet<KeyCode> = get_keys_pressed();
       for key_code in pressed.iter() {
-        if key_code == &KeyCode::Backspace {
-          self.input.pop();
-          continue;
-        }
         let cc = key_code_to_char(key_code);
         let c = if shift { cc.1 } else { cc.0 };
         self.input += c;
@@ -171,5 +178,8 @@ impl UiInput {
 
     // stop drawing to target
     set_default_camera();
+  }
+  pub fn clear(&mut self) {
+    self.input.clear();
   }
 }

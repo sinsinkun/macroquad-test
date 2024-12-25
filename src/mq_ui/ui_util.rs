@@ -72,7 +72,7 @@ pub(crate) fn update_children(
   }
 }
 
-pub(crate) fn render_children(children: &Vec<UiElement>, theme: &UiTheme) {
+pub(crate) fn render_children(children: &mut Vec<UiElement>, theme: &UiTheme) {
   for elem in children {
     match elem {
       UiElement::Box(e) => { e.render(&theme); }
@@ -121,6 +121,29 @@ pub(crate) fn update_event(
     *holding = false;
   }
   evt
+}
+
+pub(crate) fn find_node(children: &Vec<UiElement>, id: u32) -> Option<&UiElement> {
+  let mut out = None;
+  for elem in children {
+    match elem {
+      UiElement::Box(e) => {
+        if e.id == id { out = Some(elem); }
+        let deep = find_node(&e.children, id);
+        if deep.is_some() { out = deep; }
+      }
+      UiElement::Text(e) => {
+        if e.id == id { out = Some(elem); }
+      }
+      UiElement::Button(e) => {
+        if e.id == id { out = Some(elem); }
+      }
+      UiElement::Input(e) => {
+        if e.id == id { out = Some(elem); }
+      }
+    }
+  }
+  out
 }
 
 pub(crate) fn key_code_to_char(k: &KeyCode) -> (&str, &str) {

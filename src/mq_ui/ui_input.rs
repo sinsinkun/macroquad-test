@@ -16,9 +16,11 @@ pub struct UiInput {
   pub placeholder: String,
   blink_counter: f32,
   show_blink: bool,
+  target: RenderTarget,
 }
 impl UiInput {
   pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
+    let target = render_target_msaa(pos_size.w as u32, pos_size.h as u32, 4);
     Self {
       id,
       event: UiEvent::None,
@@ -31,6 +33,7 @@ impl UiInput {
       placeholder,
       blink_counter: 0.0,
       show_blink: false,
+      target,
     }
   }
   pub(crate) fn update(
@@ -104,24 +107,52 @@ impl UiInput {
       target.replace(UiElement::Input(self.clone()));
     }
   }
-  pub(crate) fn render(&self, theme: &UiTheme) {
+  pub(crate) fn render(&mut self, theme: &UiTheme) {
+    let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
+    self.draw_to_target(theme, &(txt_size.width, txt_size.height));
+    // draw target
+    draw_texture(&self.target.texture, self.abs_origin.0, self.abs_origin.1, WHITE);
+    // draw blinker
+    if self.is_active && self.show_blink {
+      let mut blinker_x = self.abs_origin.0 + txt_size.width + 3.0;
+      if txt_size.width > self.size.0 {
+        // scroll text so its right aligned
+        blinker_x = self.abs_origin.0 + self.size.0 - 3.0;
+      }
+      let blinker_y = self.abs_origin.1 + 2.0;
+      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, BLACK);
+    }
+    // draw border
+    draw_rectangle_lines(
+      self.abs_origin.0,
+      self.abs_origin.1,
+      self.size.0,
+      self.size.1,
+      1.5,
+      BLACK,
+    );
+  }
+  fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32)) {
     let mut active_color = match self.event {
       UiEvent::Hover | UiEvent::LClick => theme.base_color_plus(20.0),
       UiEvent::Hold | UiEvent::LRelease => theme.base_color_plus(30.0),
       _ => theme.base_color_plus(10.0)
     };
     if self.is_active { active_color = theme.base_color_plus(30.0) };
-    draw_rectangle(
-      self.abs_origin.0,
-      self.abs_origin.1,
-      self.size.0,
-      self.size.1,
-      active_color,
-    );
+    // draw to target
+    set_camera(&Camera2D {
+      zoom: vec2(2.0/self.size.0, 2.0/self.size.1),
+      render_target: Some(self.target.clone()),
+      ..Default::default()
+    });
+    clear_background(active_color);
     // draw text
-    let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
-    let txt_x = self.abs_origin.0 + 3.0;
-    let txt_y = self.abs_origin.1 + self.size.1 - 10.0;
+    let mut txt_x = (self.size.0 / -2.0) + 3.0;
+    let txt_y = (self.size.1 / -2.0) + self.size.1 - 10.0;
+    if txt_size.0 > self.size.0 {
+      // scroll text so its right aligned
+      txt_x = (self.size.0 / -2.0) - (txt_size.0 - self.size.0) - 3.0;
+    }
     if self.is_active || !self.input.is_empty() {
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {
         font: theme.font,
@@ -137,20 +168,8 @@ impl UiInput {
         ..Default::default()
       });
     }
-    // draw blinker
-    if self.is_active && self.show_blink {
-      let blinker_x = self.abs_origin.0 + txt_size.width + 3.0;
-      let blinker_y = self.abs_origin.1 + 2.0;
-      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, BLACK);
-    }
-    // draw border
-    draw_rectangle_lines(
-      self.abs_origin.0,
-      self.abs_origin.1,
-      self.size.0,
-      self.size.1,
-      1.5,
-      BLACK,
-    );
+
+    // stop drawing to target
+    set_default_camera();
   }
 }

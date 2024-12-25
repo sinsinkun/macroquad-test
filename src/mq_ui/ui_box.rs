@@ -7,7 +7,7 @@ pub struct UiBox {
   pub id: u32,
   pub event: UiEvent,
   holding: bool,
-  children: Vec<UiElement>,
+  pub(crate) children: Vec<UiElement>,
   origin: (f32, f32),
   abs_origin: (f32, f32),
   size: (f32, f32),
@@ -76,7 +76,7 @@ impl UiBox {
       target.replace(UiElement::Box(self.clone()));
     }
   }
-  pub(crate) fn render(&self, theme: &UiTheme) {
+  pub(crate) fn render(&mut self, theme: &UiTheme) {
     let active_color = match self.event {
       UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.base_color_plus(20.0),
       _ => theme.base_color
@@ -96,7 +96,7 @@ impl UiBox {
       active_color,
     );
     // render children
-    render_children(&self.children, theme);
+    render_children(&mut self.children, theme);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);

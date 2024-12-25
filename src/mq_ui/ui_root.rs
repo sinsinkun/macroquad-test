@@ -8,13 +8,16 @@ pub struct UiRoot<'a> {
   theme: UiTheme<'a>,
   children: Vec<UiElement>,
   prev_mouse_pos: (f32, f32),
+  id_counter: u32,
 }
+#[allow(unused)]
 impl<'a> UiRoot<'a> {
   pub fn new() -> Self {
     Self {
       theme: UiTheme::default(),
       children: Vec::new(),
       prev_mouse_pos: (0.0, 0.0),
+      id_counter: 1,
     }
   }
   pub fn with_theme(mut self, theme: UiTheme<'a>) -> Self {
@@ -83,10 +86,18 @@ impl<'a> UiRoot<'a> {
     // surface action target
     action_target
   }
-  pub fn render(&self) {
-    render_children(&self.children, &self.theme);
+  pub fn render(&mut self) {
+    render_children(&mut self.children, &self.theme);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);
+  }
+  pub fn find_element(&self, id: u32) -> Option<&UiElement> {
+    find_node(&self.children, id)
+  }
+  pub fn new_id(&mut self) -> u32 {
+    let id = self.id_counter;
+    self.id_counter += 1;
+    id
   }
 }

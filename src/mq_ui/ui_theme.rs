@@ -17,11 +17,11 @@ impl Default for UiTheme<'_> {
     Self {
       font: None,
       font_size: 18,
-      base_color: colors::GRAY,
+      base_color: Color::from_rgba(160, 160, 160, 255),
       contrast_color: colors::BLACK,
       accent_color_1: colors::BLUE,
       accent_color_2: colors::LIME,
-      shadow_color: Color::from_rgba(0, 0, 0, 120),
+      shadow_color: Color::from_rgba(0, 0, 0, 80),
     }
   }
 }

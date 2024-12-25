@@ -111,35 +111,35 @@ pub(crate) fn update_event(
   action_available: &mut bool,
   inbounds: bool,
   holding: &mut bool,
-  prev_event: &UiEvent,
+  prev_event: &UiAction,
   l_mouse: &UiMouseAction,
   r_mouse: &UiMouseAction,
-) -> UiEvent {
-  let mut evt = UiEvent::None;
+) -> UiAction {
+  let mut evt = UiAction::None;
   if *action_available && inbounds {
     *action_available = false;
     match prev_event {
-      UiEvent::None | UiEvent::Hover | UiEvent::LRelease => {
-        evt = UiEvent::Hover;
+      UiAction::None | UiAction::Hover | UiAction::LRelease => {
+        evt = UiAction::Hover;
       }
       _ => ()
     }
     if l_mouse == &UiMouseAction::Down {
-      evt = UiEvent::LClick;
+      evt = UiAction::LClick;
       *holding = true;
     } else if l_mouse == &UiMouseAction::Hold {
-      evt = UiEvent::Hold;
+      evt = UiAction::Hold;
     } else if l_mouse == &UiMouseAction::Release {
-      if *holding { evt = UiEvent::LRelease; }
+      if *holding { evt = UiAction::LRelease; }
       *holding = false;
     } else if r_mouse == &UiMouseAction::Down {
-      evt = UiEvent::RClick;
+      evt = UiAction::RClick;
     } else if r_mouse == &UiMouseAction::Release {
-      evt = UiEvent::RRelease;
+      evt = UiAction::RRelease;
     }
   }
   if !inbounds && l_mouse == &UiMouseAction::Down {
-    evt = UiEvent::LClickOuter;
+    evt = UiAction::LClickOuter;
   }
   if l_mouse == &UiMouseAction::Release && *holding {
     *holding = false;

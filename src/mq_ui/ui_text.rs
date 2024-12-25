@@ -5,7 +5,7 @@ use crate::mq_ui::*;
 #[derive(Debug, Clone)]
 pub struct UiText {
   pub id: u32,
-  pub event: UiEvent,
+  pub event: UiAction,
   holding: bool,
   origin: (f32, f32),
   abs_origin: (f32, f32),
@@ -17,7 +17,7 @@ impl UiText {
   pub fn new(id: u32, pos_size: Rect, text: String, draggable: bool) -> Self {
     Self {
       id,
-      event: UiEvent::None,
+      event: UiAction::None,
       holding: false,
       origin: (pos_size.x, pos_size.y),
       abs_origin: (pos_size.x, pos_size.y),

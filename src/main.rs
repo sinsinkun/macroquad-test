@@ -101,10 +101,10 @@ async fn main() {
 		if let Some(elem) = ui.update() {
 			match elem {
 				UiElement::Button(e) => {
-					if e.event == UiEvent::LClick {
+					if e.event == UiAction::LClick {
 						println!("Clicked btn {}", e.id);
 					}
-					if e.event == UiEvent::LRelease {
+					if e.event == UiAction::LRelease {
 						println!("Released btn {}", e.id);
 					}
 				}

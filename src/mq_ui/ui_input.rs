@@ -5,7 +5,7 @@ use crate::mq_ui::*;
 #[derive(Debug, Clone)]
 pub struct UiInput {
   pub id: u32,
-  pub event: UiEvent,
+  pub event: UiAction,
   holding: bool,
   origin: (f32, f32),
   abs_origin: (f32, f32),
@@ -24,7 +24,7 @@ impl UiInput {
     let target = render_target_msaa(pos_size.w as u32, pos_size.h as u32, 4);
     Self {
       id,
-      event: UiEvent::None,
+      event: UiAction::None,
       holding: false,
       origin: (pos_size.x, pos_size.y),
       abs_origin: (pos_size.x, pos_size.y),
@@ -72,10 +72,10 @@ impl UiInput {
     );
     // toggle active state
     match self.event {
-      UiEvent::LRelease => {
+      UiAction::LRelease => {
         self.is_active = !self.is_active;
       }
-      UiEvent::LClickOuter => {
+      UiAction::LClickOuter => {
         self.is_active = false;
       }
       _ => ()
@@ -116,8 +116,8 @@ impl UiInput {
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let mut active_color = match self.event {
-      UiEvent::Hover | UiEvent::LClick => theme.palette_4,
-      UiEvent::Hold | UiEvent::LRelease => theme.palette_5,
+      UiAction::Hover | UiAction::LClick => theme.palette_4,
+      UiAction::Hold | UiAction::LRelease => theme.palette_5,
       _ => theme.palette_3
     };
     if self.is_active { active_color = theme.palette_5 };

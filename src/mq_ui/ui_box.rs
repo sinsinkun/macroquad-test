@@ -5,7 +5,7 @@ use crate::mq_ui::*;
 #[derive(Debug, Clone)]
 pub struct UiBox {
   pub id: u32,
-  pub event: UiEvent,
+  pub event: UiAction,
   holding: bool,
   pub(crate) children: Vec<UiElement>,
   origin: (f32, f32),
@@ -18,7 +18,7 @@ impl UiBox {
   pub fn new(id: u32, pos_size: Rect, draggable: bool, show_hover: bool) -> Self {
     Self {
       id,
-      event: UiEvent::None,
+      event: UiAction::None,
       holding: false,
       children: Vec::new(),
       origin: (pos_size.x, pos_size.y),
@@ -78,7 +78,7 @@ impl UiBox {
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => {
+      UiAction::Hover | UiAction::Hold | UiAction::LClick | UiAction::LRelease => {
         if self.draggable { theme.palette_2 }
         else { theme.palette_1 }
       }

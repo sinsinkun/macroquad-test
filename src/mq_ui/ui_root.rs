@@ -74,7 +74,7 @@ impl<'a> UiRoot<'a> {
         },
       };
       match event {
-        UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => {
+        UiAction::Hover | UiAction::Hold | UiAction::LClick | UiAction::LRelease => {
           if text_input { cursor_icon = CursorIcon::Text; }
           else if show_hover { cursor_icon = CursorIcon::Pointer; }
           else { cursor_icon = CursorIcon::Default; }

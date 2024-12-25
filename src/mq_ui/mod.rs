@@ -1,5 +1,5 @@
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
-pub enum UiEvent{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
+pub enum UiAction{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UiMouseAction{ None, Down, Hold, Release }

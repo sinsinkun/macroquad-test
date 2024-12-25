@@ -78,7 +78,10 @@ impl UiBox {
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.palette_2,
+      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => {
+        if self.draggable { theme.palette_2 }
+        else { theme.palette_1 }
+      }
       _ => theme.palette_1
     };
     draw_rectangle(

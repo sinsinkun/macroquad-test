@@ -32,8 +32,9 @@ impl<'a> FpsCounter<'a> {
 			let fps = get_fps();
 			self.display = "FPS: ".to_owned() + &fps.to_string();
 		}
+		let y = window::screen_height() - 5.0;
 		// render display
-		draw_text_ex(&self.display, 5.0, 20.0, TextParams {
+		draw_text_ex(&self.display, 5.0, y, TextParams {
 			font: self.font,
 			font_size: 18,
 			color: GREEN,
@@ -75,23 +76,24 @@ async fn main() {
 
 	// states
 	let mut fps_counter = FpsCounter::new(Some(&font));
-	let mut ui   = UiRoot::new().with_theme(UiTheme {
+	let mut ui = UiRoot::new().with_theme(UiTheme {
 			font: Some(&font),
 			font_size: 18,
 			..Default::default()
 	});
-	let mut box1 = UiBox::new(1, Rect::new(40.0, 40.0, 110.0, 150.0), true, true);
-	let box2     = UiBox::new(2, Rect::new(40.0, 60.0, 50.0, 50.0), false, false);
-	let mut box3 = UiBox::new(3, Rect::new(200.0, 200.0, 200.0, 80.0), true, false);
-	let btn4     = UiButton::new(4, Rect::new(10.0, 40.0, 100.0, 30.0), "Button".to_owned());
-	let txt5     = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
-	let input6   = UiInput::new(6, Rect::new(5.0, 10.0, 100.0, 30.0), "Input".to_owned());
-	box1.add_child(UiElement::Box(box2));
-	box1.add_child(UiElement::Input(input6));
-	box3.add_child(UiElement::Button(btn4));
-	box3.add_child(UiElement::Text(txt5));
-	ui.add_child(UiElement::Box(box1));
-	ui.add_child(UiElement::Box(box3));
+	let mut nav = UiBox::new(1, Rect::new(0.0, 0.0, 800.0, 50.0), false, false);
+	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
+	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned());
+	nav.add_child(UiElement::Input(search_input));
+	nav.add_child(UiElement::Button(search_btn));
+	ui.add_child(UiElement::Box(nav));
+
+	let mut dialog = UiBox::new(4, Rect::new(200.0, 200.0, 300.0, 100.0), true, true);
+	let dialog_txt = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
+	let dialog_btn = UiButton::new(6, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned());
+	dialog.add_child(UiElement::Text(dialog_txt));
+	dialog.add_child(UiElement::Button(dialog_btn));
+	ui.add_child(UiElement::Box(dialog));
 	let bg_color = ui.theme.palette_4;
 
 	loop {

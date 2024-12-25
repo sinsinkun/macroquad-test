@@ -125,11 +125,11 @@ impl UiInput {
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let mut active_color = match self.event {
-      UiAction::Hover | UiAction::LClick => theme.palette_4,
-      UiAction::Hold | UiAction::LRelease => theme.palette_5,
-      _ => theme.palette_3
+      UiAction::Hover | UiAction::LClick => theme.secondary[2],
+      UiAction::Hold | UiAction::LRelease => theme.accent[0],
+      _ => theme.secondary[1]
     };
-    if self.is_active { active_color = theme.palette_5 };
+    if self.is_active { active_color = theme.secondary[3] };
     let txt_size = measure_text(&self.input, theme.font.as_ref(), theme.font_size, 1.0);
     self.draw_to_target(theme, &(txt_size.width, txt_size.height), active_color);
     // draw target

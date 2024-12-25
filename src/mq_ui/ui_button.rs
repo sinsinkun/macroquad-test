@@ -67,9 +67,9 @@ impl UiButton {
   }
   pub(crate) fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiAction::Hover | UiAction::LClick => theme.palette_4,
-      UiAction::Hold | UiAction::LRelease => theme.palette_5,
-      _ => theme.palette_3
+      UiAction::Hover | UiAction::LClick => theme.secondary[2],
+      UiAction::Hold | UiAction::LRelease => theme.accent[0],
+      _ => theme.secondary[1]
     };
     // draw pill
     draw_poly(

@@ -89,8 +89,8 @@ async fn main() {
 			4, Rect::new(200.0, 200.0, 300.0, 25.0), true, true, Some(&root.theme)
 		).with(|dialog| {
 			// modify colors directly
-			dialog.color = root.theme.palette_4;
-			dialog.hover_color = root.theme.palette_5;
+			dialog.color = root.theme.secondary[2];
+			dialog.hover_color = root.theme.secondary[3];
 
 			let dialog_body = UiBox::new(
 				4, Rect::new(0.0, 25.0, 300.0, 100.0), false, false, Some(&root.theme)
@@ -112,7 +112,7 @@ async fn main() {
 	nav.add_child(UiElement::Button(search_btn));
 	ui.add_child(UiElement::Box(nav));
 
-	let bg_color = ui.theme.palette_2;
+	let bg_color = ui.theme.primary;
 
 	loop {
 		let win_size = (window::screen_width(), window::screen_height());

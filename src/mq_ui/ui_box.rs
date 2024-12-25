@@ -22,8 +22,8 @@ impl UiBox {
     let mut hover_color = LIGHTGRAY;
     match theme {
       Some(tm) => {
-        color = tm.palette_1;
-        hover_color = tm.palette_2;
+        color = tm.secondary[0];
+        hover_color = tm.secondary[1];
       }
       None => ()
     }

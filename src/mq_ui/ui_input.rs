@@ -89,7 +89,11 @@ impl UiInput {
     if self.is_active {
       // register key inputs
       let shift = is_key_down(KeyCode::LeftShift) || is_key_down(KeyCode::RightShift);
-      if is_key_down(KeyCode::Backspace) && !self.input.is_empty() {
+      if is_key_pressed(KeyCode::Backspace) && !self.input.is_empty() {
+        // give higher cooldown on first press
+        self.input.pop();
+        self.bksp_cooldown = 0.5;
+      } else if is_key_down(KeyCode::Backspace) && !self.input.is_empty() {
         if self.bksp_cooldown > 0.0 {
           self.bksp_cooldown -= time_delta;
         }

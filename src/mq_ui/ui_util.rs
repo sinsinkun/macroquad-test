@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
@@ -19,6 +21,17 @@ pub fn contrast_color(bg_color: &Color) -> Color {
 pub fn adjust_alpha(color: &Color, alpha: f32) -> Color {
   let mut c = color.clone();
   c.a = alpha;
+  c
+}
+
+pub fn mix_colors(color_1: &Color, color_2: &Color, percent: f32) -> Color {
+  if percent <= 0.0 { return color_1.clone(); }
+  if percent >= 1.0 { return color_2.clone(); }
+  let mut c = BLACK;
+  c.r = (1.0 - percent) * color_1.r + percent * color_2.r;
+  c.g = (1.0 - percent) * color_1.g + percent * color_2.g;
+  c.b = (1.0 - percent) * color_1.b + percent * color_2.b;
+  c.a = (1.0 - percent) * color_1.a + percent * color_2.a;
   c
 }
 

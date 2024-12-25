@@ -68,10 +68,10 @@ impl UiText {
     }
   }
   pub(crate) fn render(&self, theme: &UiTheme, parent_color: &Color) {
-    let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
+    let txt_size = measure_text(&self.text, theme.font.as_ref(), theme.font_size, 1.0);
     let txt_y = self.abs_origin.1 + txt_size.height / 2.0;
     draw_text_ex(&self.text, self.abs_origin.0, txt_y, TextParams {
-      font: theme.font,
+      font: theme.font.as_ref(),
       font_size: theme.font_size,
       color: contrast_color(parent_color),
       ..Default::default()

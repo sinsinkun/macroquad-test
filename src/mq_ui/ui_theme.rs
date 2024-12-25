@@ -1,8 +1,8 @@
 use macroquad::prelude::*;
 
 #[derive(Debug, Clone)]
-pub struct UiTheme<'a> {
-  pub font: Option<&'a Font>,
+pub struct UiTheme {
+  pub font: Option<Font>,
   pub font_size: u16,
   pub palette_1: Color,
   pub palette_2: Color,
@@ -11,7 +11,7 @@ pub struct UiTheme<'a> {
   pub palette_5: Color,
   pub shadow_color: Color,
 }
-impl Default for UiTheme<'_> {
+impl Default for UiTheme {
   fn default() -> Self {
     Self {
       font: None,

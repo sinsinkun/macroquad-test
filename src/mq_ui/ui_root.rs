@@ -1,16 +1,17 @@
 use macroquad::prelude::*;
+use macroquad::window;
 use miniquad::window::set_mouse_cursor;
 use miniquad::CursorIcon;
 use crate::mq_ui::*;
 
 #[derive(Debug, Clone)]
-pub struct UiRoot<'a> {
-  pub theme: UiTheme<'a>,
+pub struct UiRoot {
+  pub theme: UiTheme,
   children: Vec<UiElement>,
   prev_mouse_pos: (f32, f32),
   id_counter: u32,
 }
-impl<'a> UiRoot<'a> {
+impl UiRoot {
   pub fn new() -> Self {
     Self {
       theme: UiTheme::default(),
@@ -19,7 +20,12 @@ impl<'a> UiRoot<'a> {
       id_counter: 1,
     }
   }
-  pub fn with_theme(mut self, theme: UiTheme<'a>) -> Self {
+  pub fn with<F>(mut self, func: F) -> Self
+  where F: Fn(&mut UiRoot) {
+    func(&mut self);
+    self
+  }
+  pub fn with_theme(mut self, theme: UiTheme) -> Self {
     self.theme = theme;
     self
   }
@@ -34,6 +40,7 @@ impl<'a> UiRoot<'a> {
     );
     self.prev_mouse_pos = mouse_pos;
     let origin = (0.0, 0.0);
+
     let (l_mouse, r_mouse) = get_mouse_actions();
     let t_delta = get_frame_time();
     // update children

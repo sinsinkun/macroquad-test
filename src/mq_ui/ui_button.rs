@@ -130,11 +130,11 @@ impl UiButton {
       BLACK,
     );
     // calculate text pos
-    let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
+    let txt_size = measure_text(&self.text, theme.font.as_ref(), theme.font_size, 1.0);
     let txt_x = self.abs_origin.0 + (self.size.0 - txt_size.width) / 2.0;
     let txt_y = self.abs_origin.1 + txt_size.height + (self.size.1 - txt_size.height) / 2.0;
     draw_text_ex(&self.text, txt_x, txt_y, TextParams {
-      font: theme.font,
+      font: theme.font.as_ref(),
       font_size: theme.font_size,
       color: contrast_color(&active_color),
       ..Default::default()

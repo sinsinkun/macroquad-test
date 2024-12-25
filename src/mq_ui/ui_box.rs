@@ -12,10 +12,21 @@ pub struct UiBox {
   size: (f32, f32),
   draggable: bool,
   pub show_hover: bool,
+  pub color: Color,
+  pub hover_color: Color,
   pub data: Option<UiMetaData>
 }
 impl UiBox {
-  pub fn new(id: u32, pos_size: Rect, draggable: bool, show_hover: bool) -> Self {
+  pub fn new(id: u32, pos_size: Rect, draggable: bool, show_hover: bool, theme: Option<&UiTheme>) -> Self {
+    let mut color = GRAY;
+    let mut hover_color = LIGHTGRAY;
+    match theme {
+      Some(tm) => {
+        color = tm.palette_1;
+        hover_color = tm.palette_2;
+      }
+      None => ()
+    }
     Self {
       id,
       event: UiAction::None,
@@ -26,8 +37,15 @@ impl UiBox {
       size: (pos_size.w, pos_size.h),
       draggable,
       show_hover,
+      color,
+      hover_color,
       data: None,
     }
+  }
+  pub fn with<F>(mut self, func: F) -> Self
+  where F: Fn(&mut UiBox) {
+    func(&mut self);
+    self
   }
   pub fn with_meta_data(mut self, meta_data: UiMetaData) -> Self {
     self.data = Some(meta_data);
@@ -84,10 +102,10 @@ impl UiBox {
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let active_color = match self.event {
       UiAction::Hover | UiAction::Hold | UiAction::LClick | UiAction::LRelease => {
-        if self.draggable { theme.palette_2 }
-        else { theme.palette_1 }
+        if self.draggable { self.hover_color }
+        else { self.color }
       }
-      _ => theme.palette_1
+      _ => self.color
     };
     draw_rectangle(
       self.abs_origin.0 - 1.0,

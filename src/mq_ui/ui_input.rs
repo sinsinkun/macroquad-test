@@ -130,7 +130,7 @@ impl UiInput {
       _ => theme.palette_3
     };
     if self.is_active { active_color = theme.palette_5 };
-    let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
+    let txt_size = measure_text(&self.input, theme.font.as_ref(), theme.font_size, 1.0);
     self.draw_to_target(theme, &(txt_size.width, txt_size.height), active_color);
     // draw target
     draw_texture(&self.target.texture, self.abs_origin.0, self.abs_origin.1, WHITE);
@@ -165,14 +165,14 @@ impl UiInput {
     }
     if self.is_active || !self.input.is_empty() {
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {
-        font: theme.font,
+        font: theme.font.as_ref(),
         font_size: theme.font_size,
         color: contrast_color(&active_color),
         ..Default::default()
       });
     } else if !self.placeholder.is_empty() {
       draw_text_ex(&self.placeholder, txt_x, txt_y, TextParams {
-        font: theme.font,
+        font: theme.font.as_ref(),
         font_size: theme.font_size,
         color: adjust_alpha(&text_color, 0.6),
         ..Default::default()

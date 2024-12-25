@@ -76,25 +76,43 @@ async fn main() {
 
 	// states
 	let mut fps_counter = FpsCounter::new(Some(&font));
-	let mut ui = UiRoot::new().with_theme(UiTheme {
-			font: Some(&font),
+	let mut ui = UiRoot::new().with(|root| {
+		// add theme
+		root.theme = UiTheme {
+			font: Some(font.clone()),
 			font_size: 18,
 			..Default::default()
+		};
+
+		// dialog box
+		let dialog = UiBox::new(
+			4, Rect::new(200.0, 200.0, 300.0, 25.0), true, true, Some(&root.theme)
+		).with(|dialog| {
+			// modify colors directly
+			dialog.color = root.theme.palette_4;
+			dialog.hover_color = root.theme.palette_5;
+
+			let dialog_body = UiBox::new(
+				4, Rect::new(0.0, 25.0, 300.0, 100.0), false, false, Some(&root.theme)
+			).with(|body| {
+				let dialog_txt = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
+				let dialog_btn = UiButton::new(6, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned());
+				body.add_child(UiElement::Text(dialog_txt));
+				body.add_child(UiElement::Button(dialog_btn));
+			});
+			dialog.add_child(UiElement::Box(dialog_body));
+		});
+		root.add_child(UiElement::Box(dialog));
 	});
-	let mut nav = UiBox::new(1, Rect::new(0.0, 0.0, 800.0, 50.0), false, false);
+
+	let mut nav = UiBox::new(1, Rect::new(0.0, 0.0, 800.0, 50.0), false, false, Some(&ui.theme));
 	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
 	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned());
 	nav.add_child(UiElement::Input(search_input));
 	nav.add_child(UiElement::Button(search_btn));
 	ui.add_child(UiElement::Box(nav));
 
-	let mut dialog = UiBox::new(4, Rect::new(200.0, 200.0, 300.0, 100.0), true, true);
-	let dialog_txt = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
-	let dialog_btn = UiButton::new(6, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned());
-	dialog.add_child(UiElement::Text(dialog_txt));
-	dialog.add_child(UiElement::Button(dialog_btn));
-	ui.add_child(UiElement::Box(dialog));
-	let bg_color = ui.theme.palette_4;
+	let bg_color = ui.theme.palette_2;
 
 	loop {
 		let win_size = (window::screen_width(), window::screen_height());

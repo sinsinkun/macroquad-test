@@ -10,10 +10,24 @@ pub struct UiButton {
   abs_origin: (f32, f32),
   size: (f32, f32),
   text: String,
+  pub color: Color,
+  pub hover_color: Color,
+  pub hold_color: Color,
   pub data: Option<UiMetaData>
 }
 impl UiButton {
-  pub fn new(id: u32, pos_size: Rect, text: String) -> Self {
+  pub fn new(id: u32, pos_size: Rect, text: String, theme: Option<&UiTheme>) -> Self {
+    let mut color = GRAY;
+    let mut hover_color = LIGHTGRAY;
+    let mut hold_color = BLUE;
+    match theme {
+      Some(tm) => {
+        color = tm.secondary[0];
+        hover_color = tm.secondary[1];
+        hold_color = tm.secondary[2];
+      }
+      None => ()
+    };
     Self {
       id,
       event: UiAction::None,
@@ -22,6 +36,9 @@ impl UiButton {
       abs_origin: (pos_size.x, pos_size.y),
       size: (pos_size.w, pos_size.h),
       text,
+      color,
+      hover_color,
+      hold_color,
       data: None
     }
   }
@@ -67,9 +84,9 @@ impl UiButton {
   }
   pub(crate) fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiAction::Hover | UiAction::LClick => theme.secondary[2],
-      UiAction::Hold | UiAction::LRelease => theme.accent[0],
-      _ => theme.secondary[1]
+      UiAction::Hover | UiAction::LClick => self.hover_color,
+      UiAction::Hold | UiAction::LRelease => self.hold_color,
+      _ => self.color
     };
     // draw pill
     draw_poly(

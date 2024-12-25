@@ -24,6 +24,20 @@ pub enum UiMetaData {
   VecText(Vec<String>),
 }
 
+#[derive(Debug, Clone)]
+pub enum UiSize {
+  Px(f32),
+  Percent(f32),
+}
+
+#[derive(Debug, Clone)]
+pub struct UiRect {
+  x: UiSize,
+  y: UiSize,
+  w: UiSize,
+  h: UiSize,
+}
+
 mod ui_util;
 pub use ui_util::*;
 mod ui_theme;

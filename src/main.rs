@@ -93,10 +93,14 @@ async fn main() {
 			dialog.hover_color = root.theme.secondary[3];
 
 			let dialog_body = UiBox::new(
-				4, Rect::new(0.0, 25.0, 300.0, 100.0), false, false, Some(&root.theme)
+				5, Rect::new(0.0, 25.0, 300.0, 100.0), false, false, Some(&root.theme)
 			).with(|body| {
-				let dialog_txt = UiText::new(5, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false);
-				let dialog_btn = UiButton::new(6, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned());
+				let dialog_txt = UiText::new(
+					6, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false
+				);
+				let dialog_btn = UiButton::new(
+					7, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned(), Some(&root.theme)
+				);
 				body.add_child(UiElement::Text(dialog_txt));
 				body.add_child(UiElement::Button(dialog_btn));
 			});
@@ -105,9 +109,10 @@ async fn main() {
 		root.add_child(UiElement::Box(dialog));
 	});
 
+	// nav bar
 	let mut nav = UiBox::new(1, Rect::new(0.0, 0.0, 800.0, 50.0), false, false, Some(&ui.theme));
 	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
-	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned());
+	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned(), Some(&ui.theme));
 	nav.add_child(UiElement::Input(search_input));
 	nav.add_child(UiElement::Button(search_btn));
 	ui.add_child(UiElement::Box(nav));

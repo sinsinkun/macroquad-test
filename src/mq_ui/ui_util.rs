@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 

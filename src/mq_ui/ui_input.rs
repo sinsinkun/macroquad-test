@@ -17,8 +17,8 @@ pub struct UiInput {
   show_blink: bool,
   bksp_cooldown: f32,
   target: RenderTarget,
+  pub data: Option<UiMetaData>
 }
-#[allow(unused)]
 impl UiInput {
   pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
     let target = render_target_msaa(pos_size.w as u32, pos_size.h as u32, 4);
@@ -36,7 +36,12 @@ impl UiInput {
       show_blink: false,
       bksp_cooldown: 0.0,
       target,
+      data: None,
     }
+  }
+  pub fn with_meta_data(mut self, meta_data: UiMetaData) -> Self {
+    self.data = Some(meta_data);
+    self
   }
   pub(crate) fn update(
     &mut self,

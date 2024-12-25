@@ -10,7 +10,6 @@ pub struct UiRoot<'a> {
   prev_mouse_pos: (f32, f32),
   id_counter: u32,
 }
-#[allow(unused)]
 impl<'a> UiRoot<'a> {
   pub fn new() -> Self {
     Self {

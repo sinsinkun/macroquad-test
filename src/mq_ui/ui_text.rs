@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct UiText {
   pub id: u32,
@@ -12,6 +11,7 @@ pub struct UiText {
   size: (f32, f32),
   draggable: bool,
   pub text: String,
+  pub data: Option<UiMetaData>
 }
 impl UiText {
   pub fn new(id: u32, pos_size: Rect, text: String, draggable: bool) -> Self {
@@ -24,7 +24,12 @@ impl UiText {
       size: (pos_size.w, pos_size.h),
       draggable,
       text,
+      data: None,
     }
+  }
+  pub fn with_meta_data(mut self, meta_data: UiMetaData) -> Self {
+    self.data = Some(meta_data);
+    self
   }
   pub(crate) fn update(
     &mut self,

@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct UiBox {
   pub id: u32,
@@ -13,6 +12,7 @@ pub struct UiBox {
   size: (f32, f32),
   draggable: bool,
   pub show_hover: bool,
+  pub data: Option<UiMetaData>
 }
 impl UiBox {
   pub fn new(id: u32, pos_size: Rect, draggable: bool, show_hover: bool) -> Self {
@@ -26,7 +26,12 @@ impl UiBox {
       size: (pos_size.w, pos_size.h),
       draggable,
       show_hover,
+      data: None,
     }
+  }
+  pub fn with_meta_data(mut self, meta_data: UiMetaData) -> Self {
+    self.data = Some(meta_data);
+    self
   }
   pub(crate) fn update(
     &mut self,

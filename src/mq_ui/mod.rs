@@ -1,3 +1,5 @@
+#![allow(unused)]
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UiAction{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
 
@@ -10,6 +12,16 @@ pub enum UiElement {
   Text(UiText),
   Button(UiButton),
   Input(UiInput),
+}
+
+#[derive(Debug, Clone)]
+pub enum UiMetaData {
+  Integer(i32),
+  Float(f32),
+  Text(String),
+  VecInt(Vec<i32>),
+  VecFloat(Vec<f32>),
+  VecText(Vec<String>),
 }
 
 mod ui_util;

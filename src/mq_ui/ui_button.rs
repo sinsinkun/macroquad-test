@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-#[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct UiButton {
   pub id: u32,
@@ -11,6 +10,7 @@ pub struct UiButton {
   abs_origin: (f32, f32),
   size: (f32, f32),
   text: String,
+  pub data: Option<UiMetaData>
 }
 impl UiButton {
   pub fn new(id: u32, pos_size: Rect, text: String) -> Self {
@@ -22,7 +22,12 @@ impl UiButton {
       abs_origin: (pos_size.x, pos_size.y),
       size: (pos_size.w, pos_size.h),
       text,
+      data: None
     }
+  }
+  pub fn with_meta_data(mut self, meta_data: UiMetaData) -> Self {
+    self.data = Some(meta_data);
+    self
   }
   pub(crate) fn update(
     &mut self,

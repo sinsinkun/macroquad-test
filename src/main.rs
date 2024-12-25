@@ -42,15 +42,6 @@ impl<'a> FpsCounter<'a> {
 	}
 }
 
-fn update_bg_color(bg_color: &mut Color, win_size: &(f32, f32)) {
-	// calculate x/y percentage of mouse on screen
-	let mouse_pos = mouse_position();
-	let pct_x = 0.2 + 0.5 * mouse_pos.0 / win_size.0;
-	let pct_y = 0.2 + 0.5 * mouse_pos.1 / win_size.1;
-	bg_color.r = pct_x;
-	bg_color.b = pct_y;
-}
-
 // --- --- --- --- --- --- --- --- --- --- //
 // --- --- --- -- MAIN LOOP -- --- --- --- //
 // --- --- --- --- --- --- --- --- --- --- //
@@ -101,11 +92,10 @@ async fn main() {
 	box3.add_child(UiElement::Text(txt5));
 	ui.add_child(UiElement::Box(box1));
 	ui.add_child(UiElement::Box(box3));
-	let mut bg_color = Color::from_rgba(60, 60, 60, 255);
+	let bg_color = ui.theme.palette_4;
 
 	loop {
 		let win_size = (window::screen_width(), window::screen_height());
-		update_bg_color(&mut bg_color, &win_size);
 		if let Some(elem) = ui.update() {
 			match elem {
 				UiElement::Button(e) => {

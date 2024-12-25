@@ -115,8 +115,14 @@ impl UiInput {
     }
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
+    let mut active_color = match self.event {
+      UiEvent::Hover | UiEvent::LClick => theme.palette_4,
+      UiEvent::Hold | UiEvent::LRelease => theme.palette_5,
+      _ => theme.palette_3
+    };
+    if self.is_active { active_color = theme.palette_5 };
     let txt_size = measure_text(&self.input, theme.font, theme.font_size, 1.0);
-    self.draw_to_target(theme, &(txt_size.width, txt_size.height));
+    self.draw_to_target(theme, &(txt_size.width, txt_size.height), active_color);
     // draw target
     draw_texture(&self.target.texture, self.abs_origin.0, self.abs_origin.1, WHITE);
     // draw blinker
@@ -127,25 +133,12 @@ impl UiInput {
         blinker_x = self.abs_origin.0 + self.size.0 - 3.0;
       }
       let blinker_y = self.abs_origin.1 + 2.0;
-      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, BLACK);
+      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, contrast_color(&active_color));
     }
     // draw border
-    draw_rectangle_lines(
-      self.abs_origin.0,
-      self.abs_origin.1,
-      self.size.0,
-      self.size.1,
-      1.5,
-      BLACK,
-    );
+    draw_rectangle_lines(self.abs_origin.0, self.abs_origin.1, self.size.0, self.size.1, 1.5, BLACK);
   }
-  fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32)) {
-    let mut active_color = match self.event {
-      UiEvent::Hover | UiEvent::LClick => theme.base_color_plus(20.0),
-      UiEvent::Hold | UiEvent::LRelease => theme.base_color_plus(30.0),
-      _ => theme.base_color_plus(10.0)
-    };
-    if self.is_active { active_color = theme.base_color_plus(30.0) };
+  fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32), active_color: Color) {
     // draw to target
     set_camera(&Camera2D {
       zoom: vec2(2.0/self.size.0, 2.0/self.size.1),
@@ -156,6 +149,7 @@ impl UiInput {
     // draw text
     let mut txt_x = (self.size.0 / -2.0) + 3.0;
     let txt_y = (self.size.1 / -2.0) + self.size.1 - 10.0;
+    let text_color = contrast_color(&active_color);
     if txt_size.0 > self.size.0 {
       // scroll text so its right aligned
       txt_x = (self.size.0 / -2.0) - (txt_size.0 - self.size.0) - 3.0;
@@ -164,14 +158,14 @@ impl UiInput {
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {
         font: theme.font,
         font_size: theme.font_size,
-        color: theme.contrast_color,
+        color: contrast_color(&active_color),
         ..Default::default()
       });
     } else if !self.placeholder.is_empty() {
       draw_text_ex(&self.placeholder, txt_x, txt_y, TextParams {
         font: theme.font,
         font_size: theme.font_size,
-        color: theme.contrast_color_plus(30.0),
+        color: adjust_alpha(&text_color, 0.6),
         ..Default::default()
       });
     }

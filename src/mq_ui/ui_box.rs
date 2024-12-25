@@ -78,8 +78,8 @@ impl UiBox {
   }
   pub(crate) fn render(&mut self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.base_color_plus(20.0),
-      _ => theme.base_color
+      UiEvent::Hover | UiEvent::Hold | UiEvent::LClick | UiEvent::LRelease => theme.palette_2,
+      _ => theme.palette_1
     };
     draw_rectangle(
       self.abs_origin.0 - 1.0,
@@ -96,7 +96,7 @@ impl UiBox {
       active_color,
     );
     // render children
-    render_children(&mut self.children, theme);
+    render_children(&mut self.children, theme, &active_color);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);

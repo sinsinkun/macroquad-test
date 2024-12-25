@@ -11,6 +11,17 @@ pub fn point_in_rect(point: &(f32, f32), rect: &Rect) -> bool {
   x_in && y_in
 }
 
+pub fn contrast_color(bg_color: &Color) -> Color {
+  let brightness = bg_color.r * 0.299 + bg_color.g * 0.587 + bg_color.b * 0.114;
+  if brightness > 0.7294 { BLACK } else { WHITE }
+}
+
+pub fn adjust_alpha(color: &Color, alpha: f32) -> Color {
+  let mut c = color.clone();
+  c.a = alpha;
+  c
+}
+
 pub(crate) fn get_mouse_actions() -> (UiMouseAction, UiMouseAction) {
   let mut l_mouse = UiMouseAction::None;
   let mut r_mouse = UiMouseAction::None;
@@ -72,11 +83,11 @@ pub(crate) fn update_children(
   }
 }
 
-pub(crate) fn render_children(children: &mut Vec<UiElement>, theme: &UiTheme) {
+pub(crate) fn render_children(children: &mut Vec<UiElement>, theme: &UiTheme, parent_color: &Color) {
   for elem in children {
     match elem {
       UiElement::Box(e) => { e.render(&theme); }
-      UiElement::Text(e) => { e.render(&theme); }
+      UiElement::Text(e) => { e.render(&theme, parent_color); }
       UiElement::Button(e) => { e.render(&theme); }
       UiElement::Input(e) => { e.render(&theme); }
     }

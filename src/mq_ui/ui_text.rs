@@ -11,7 +11,7 @@ pub struct UiText {
   abs_origin: (f32, f32),
   size: (f32, f32),
   draggable: bool,
-  text: String,
+  pub text: String,
 }
 impl UiText {
   pub fn new(id: u32, pos_size: Rect, text: String, draggable: bool) -> Self {
@@ -62,13 +62,13 @@ impl UiText {
       target.replace(UiElement::Text(self.clone()));
     }
   }
-  pub(crate) fn render(&self, theme: &UiTheme) {
+  pub(crate) fn render(&self, theme: &UiTheme, parent_color: &Color) {
     let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
     let txt_y = self.abs_origin.1 + txt_size.height / 2.0;
     draw_text_ex(&self.text, self.abs_origin.0, txt_y, TextParams {
       font: theme.font,
       font_size: theme.font_size,
-      color: theme.contrast_color,
+      color: contrast_color(parent_color),
       ..Default::default()
     });
   }

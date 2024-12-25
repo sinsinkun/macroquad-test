@@ -5,7 +5,7 @@ use crate::mq_ui::*;
 
 #[derive(Debug, Clone)]
 pub struct UiRoot<'a> {
-  theme: UiTheme<'a>,
+  pub theme: UiTheme<'a>,
   children: Vec<UiElement>,
   prev_mouse_pos: (f32, f32),
   id_counter: u32,
@@ -87,7 +87,7 @@ impl<'a> UiRoot<'a> {
     action_target
   }
   pub fn render(&mut self) {
-    render_children(&mut self.children, &self.theme);
+    render_children(&mut self.children, &self.theme, &WHITE);
   }
   pub fn add_child(&mut self, elem: UiElement) {
     self.children.push(elem);

@@ -62,16 +62,67 @@ impl UiButton {
   }
   pub(crate) fn render(&self, theme: &UiTheme) {
     let active_color = match self.event {
-      UiEvent::Hover | UiEvent::LClick => theme.base_color_plus(20.0),
-      UiEvent::Hold | UiEvent::LRelease => theme.base_color_plus(40.0),
-      _ => theme.base_color_plus(10.0)
+      UiEvent::Hover | UiEvent::LClick => theme.palette_4,
+      UiEvent::Hold | UiEvent::LRelease => theme.palette_5,
+      _ => theme.palette_3
     };
+    // draw pill
+    draw_poly(
+      self.abs_origin.0 + self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 / 2.0,
+      36,
+      self.size.1 / 2.0,
+      0.0,
+      active_color
+    );
+    draw_poly(
+      self.abs_origin.0 + self.size.0 - self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 / 2.0,
+      36,
+      self.size.1 / 2.0,
+      0.0,
+      active_color
+    );
+    draw_poly_lines(
+      self.abs_origin.0 + self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 / 2.0,
+      36,
+      self.size.1 / 2.0,
+      0.0,
+      1.0,
+      BLACK
+    );
+    draw_poly_lines(
+      self.abs_origin.0 + self.size.0 - self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 / 2.0,
+      36,
+      self.size.1 / 2.0,
+      0.0,
+      1.0,
+      BLACK,
+    );
     draw_rectangle(
-      self.abs_origin.0,
+      self.abs_origin.0 + self.size.1 / 2.0,
       self.abs_origin.1,
-      self.size.0,
+      self.size.0 - self.size.1,
       self.size.1,
       active_color,
+    );
+    draw_line(
+      self.abs_origin.0 + self.size.1 / 2.0,
+      self.abs_origin.1 - 0.5,
+      self.abs_origin.0 + self.size.0 - self.size.1 / 2.0,
+      self.abs_origin.1 - 0.5,
+      1.0,
+      BLACK,
+    );
+    draw_line(
+      self.abs_origin.0 + self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 + 0.5,
+      self.abs_origin.0 + self.size.0 - self.size.1 / 2.0,
+      self.abs_origin.1 + self.size.1 + 0.5,
+      1.0,
+      BLACK,
     );
     // calculate text pos
     let txt_size = measure_text(&self.text, theme.font, theme.font_size, 1.0);
@@ -80,17 +131,8 @@ impl UiButton {
     draw_text_ex(&self.text, txt_x, txt_y, TextParams {
       font: theme.font,
       font_size: theme.font_size,
-      color: theme.contrast_color,
+      color: contrast_color(&active_color),
       ..Default::default()
     });
-    // draw border
-    draw_rectangle_lines(
-      self.abs_origin.0,
-      self.abs_origin.1,
-      self.size.0,
-      self.size.1,
-      1.5,
-      BLACK,
-    );
   }
 }

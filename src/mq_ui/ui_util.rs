@@ -65,6 +65,61 @@ pub(crate) fn update_position(
   }
 }
 
+pub(crate) fn update_position_adv(
+  prev_abs_bounds: &Rect,
+  prev_rel_bounds: &UiRect,
+  margin: &UiMargin,
+  alignment: &UiAlign,
+  parent_rect: &Rect,
+  mouse_delta: &(f32, f32),
+  draggable: bool,
+  holding: bool,
+) -> (Rect, UiRect) {
+  let mut abs_bounds = *prev_abs_bounds;
+  let mut rel_bounds = *prev_rel_bounds;
+  if draggable && holding {
+    // update absolute positioning
+    abs_bounds.x += mouse_delta.0;
+    abs_bounds.y += mouse_delta.1;
+    // update relative positioning
+    if rel_bounds.x.is_px() {
+      rel_bounds.x += mouse_delta.0;
+    }
+    if rel_bounds.x.is_percent() {
+      rel_bounds.x += mouse_delta.0 / parent_rect.w;
+    }
+    if rel_bounds.y.is_px() {
+      rel_bounds.y += mouse_delta.1;
+    }
+    if rel_bounds.y.is_percent() {
+      rel_bounds.y += mouse_delta.1 / parent_rect.h;
+    }
+  } else {
+    // maintain relative distance to parent
+    if rel_bounds.x.is_px() {
+      abs_bounds.x = parent_rect.x + rel_bounds.x.value();
+    }
+    if rel_bounds.x.is_percent() {
+      abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
+    }
+    if rel_bounds.y.is_px() {
+      abs_bounds.y = parent_rect.y + rel_bounds.y.value();
+    }
+    if rel_bounds.y.is_percent() {
+      abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h);
+    }
+    // maintain relative size
+    if rel_bounds.w.is_percent() {
+      abs_bounds.w = rel_bounds.w.value() * parent_rect.w;
+    }
+    if rel_bounds.h.is_percent() {
+      abs_bounds.h = rel_bounds.h.value() * parent_rect.h;
+    }
+  }
+  // return new positions
+  (abs_bounds, rel_bounds)
+}
+
 pub(crate) fn update_children(
   children: &mut Vec<UiElement>, 
   target: &mut Option<UiElement>,

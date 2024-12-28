@@ -1,5 +1,23 @@
 #![allow(unused)]
 
+use std::ops::{Add, AddAssign};
+use macroquad::prelude::*;
+
+mod ui_util;
+pub use ui_util::*;
+mod ui_theme;
+pub use ui_theme::UiTheme;
+mod ui_root;
+pub use ui_root::UiRoot;
+mod ui_box;
+pub use ui_box::UiBox;
+mod ui_text;
+pub use ui_text::UiText;
+mod ui_button;
+pub use ui_button::UiButton;
+mod ui_input;
+pub use ui_input::UiInput;
+
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UiAction{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
 
@@ -24,13 +42,77 @@ pub enum UiMetaData {
   VecText(Vec<String>),
 }
 
-#[derive(Debug, Clone)]
+// --- --- --- --- --- --- --- --- --- --- //
+// --- -- -- SIZE & POSITIONING -- --- --- //
+// --- --- --- --- --- --- --- --- --- --- //
+
+#[derive(Debug, PartialEq, Clone, Copy)]
 pub enum UiSize {
   Px(f32),
   Percent(f32),
 }
+impl UiSize {
+  pub fn value(&self) -> f32 {
+    match self {
+      UiSize::Px(x) => *x,
+      UiSize::Percent(x) => *x
+    }
+  }
+  pub fn is_px(&self) -> bool {
+    match self {
+      UiSize::Px(_) => true,
+      _ => false
+    }
+  }
+  pub fn is_percent(&self) -> bool {
+    match self {
+      UiSize::Percent(_) => true,
+      _ => false
+    }
+  }
+}
+impl Add<f32> for UiSize {
+  type Output = UiSize;
+  fn add(self, rhs: f32) -> Self::Output {
+    let mut val: UiSize;
+    match self {
+      UiSize::Px(lhs) => {
+        val = UiSize::Px(lhs + rhs);
+      }
+      UiSize::Percent(lhs) => {
+        val = UiSize::Percent(lhs + rhs);
+      }
+    };
+    val
+  }
+}
+impl AddAssign<f32> for UiSize {
+  fn add_assign(&mut self, rhs: f32) {
+    *self = match self {
+      UiSize::Px(lhs) => {
+        let val = *lhs + rhs;
+        UiSize::Px(val)
+      }
+      UiSize::Percent(lhs) => {
+        let val = *lhs + rhs;
+        UiSize::Percent(val)
+      }
+    };
+  }
+}
 
-#[derive(Debug, Clone)]
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum UiAlign {
+  TopLeft,
+  TopCenter,
+  TopRight,
+  FullCenter,
+  BottomLeft,
+  BottomCenter,
+  BottomRight,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct UiRect {
   x: UiSize,
   y: UiSize,
@@ -38,17 +120,10 @@ pub struct UiRect {
   h: UiSize,
 }
 
-mod ui_util;
-pub use ui_util::*;
-mod ui_theme;
-pub use ui_theme::UiTheme;
-mod ui_root;
-pub use ui_root::UiRoot;
-mod ui_box;
-pub use ui_box::UiBox;
-mod ui_text;
-pub use ui_text::UiText;
-mod ui_button;
-pub use ui_button::UiButton;
-mod ui_input;
-pub use ui_input::UiInput;
+#[derive(Debug, Clone, Copy)]
+pub struct UiMargin {
+  t: UiSize,
+  l: UiSize,
+  r: UiSize,
+  b: UiSize,
+}

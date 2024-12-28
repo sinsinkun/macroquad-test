@@ -111,9 +111,12 @@ async fn main() {
 				let dialog_txt = UiText::new(
 					6, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false
 				);
-				let dialog_btn = UiButton::new(
-					7, Rect::new(10.0, 60.0, 100.0, 30.0), "Button".to_owned(), Some(&root.theme)
-				);
+				let dialog_btn = UiButton::new(UiButtonParams {
+					id: 7,
+					pos_size: UiRect::from_px(10.0, 60.0, 100.0, 30.0),
+					theme: Some(&root.theme),
+					..Default::default()
+				});
 				body.add_child(UiElement::Text(dialog_txt));
 				body.add_child(UiElement::Button(dialog_btn));
 			});
@@ -135,7 +138,14 @@ async fn main() {
 		..Default::default()
 	});
 	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
-	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned(), Some(&ui.theme));
+	let search_btn = UiButton::new(UiButtonParams {
+		id: 3,
+		pos_size: UiRect::from_px(510.0, 10.0, 100.0, 30.0),
+		text: "Search".to_owned(),
+		alignment: UiAlign::TopCenter,
+		theme: Some(&ui.theme),
+		..Default::default()
+	});
 	nav.add_child(UiElement::Input(search_input));
 	nav.add_child(UiElement::Button(search_btn));
 	ui.add_child(UiElement::Box(nav));

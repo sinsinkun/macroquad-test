@@ -64,15 +64,6 @@ impl UiRoot {
     );
     // update cursor
     let mut cursor_icon = CursorIcon::Default;
-    let scrn_left = Rect::new(-1.0, 0.0, 2.0, h);
-    let scrn_right = Rect::new(w-2.0, 0.0, 3.0, h);
-    let scrn_bottom = Rect::new(0.0, h-2.0, w, 3.0);
-    if point_in_rect(&mouse_pos, &scrn_left) || point_in_rect(&mouse_pos, &scrn_right) {
-      cursor_icon = CursorIcon::EWResize;
-    }
-    if point_in_rect(&mouse_pos, &scrn_bottom) {
-      cursor_icon = CursorIcon::NSResize;
-    }
     if action_target.is_some() {
       let event;
       let show_hover;

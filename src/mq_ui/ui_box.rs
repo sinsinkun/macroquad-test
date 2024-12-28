@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use macroquad::rand::rand;
 use crate::mq_ui::*;
 
 /// helper struct for building boxes
@@ -15,7 +14,7 @@ impl Default for UiBoxParams<'_> {
   fn default() -> Self {
     Self {
       id: rand(),
-      pos_size: UiRect::from_px(0.0, 0.0, 100.0, 60.0),
+      pos_size: UiRect::from_px(0.0, 0.0, 200.0, 150.0),
       alignment: UiAlign::TopLeft,
       draggable: false,
       show_hover: false,
@@ -95,7 +94,9 @@ impl UiBox {
       self.draggable,
       self.holding,
     );
-    let size_delta = (pos_update.0.x - self.abs_bounds.x, pos_update.0.y - self.abs_bounds.y);
+    let size_delta = if self.abs_bounds.w != 0.0 && self.abs_bounds.h != 0.0 {
+      (pos_update.0.w - self.abs_bounds.w, pos_update.0.h - self.abs_bounds.h)
+    } else { (0.0, 0.0) };
     self.abs_bounds = pos_update.0;
     self.rel_bounds = pos_update.1;
     // update children

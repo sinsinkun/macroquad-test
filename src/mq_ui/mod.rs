@@ -2,6 +2,7 @@
 
 use std::ops::{Add, AddAssign};
 use macroquad::prelude::*;
+use macroquad::rand::rand;
 
 mod ui_util;
 pub use ui_util::*;
@@ -15,6 +16,7 @@ pub use ui_box::UiBox;
 mod ui_text;
 pub use ui_text::UiText;
 mod ui_button;
+pub use ui_button::UiButtonParams;
 pub use ui_button::UiButton;
 mod ui_input;
 pub use ui_input::UiInput;

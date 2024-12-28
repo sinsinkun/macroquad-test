@@ -2,8 +2,8 @@ use macroquad::prelude::*;
 use crate::mq_ui::*;
 
 /// helper struct for building boxes
+#[derive(Debug, Clone)]
 pub struct UiBoxParams<'a> {
-  pub id: u32,
   pub pos_size: UiRect,
   pub alignment: UiAlign,
   pub draggable: bool,
@@ -13,7 +13,6 @@ pub struct UiBoxParams<'a> {
 impl Default for UiBoxParams<'_> {
   fn default() -> Self {
     Self {
-      id: rand(),
       pos_size: UiRect::from_px(0.0, 0.0, 200.0, 150.0),
       alignment: UiAlign::TopLeft,
       draggable: false,
@@ -39,7 +38,7 @@ pub struct UiBox {
   pub data: Option<UiMetaData>
 }
 impl UiBox {
-  pub fn new(params: UiBoxParams) -> Self {
+  pub fn new(id: u32, params: UiBoxParams) -> Self {
     let mut color = GRAY;
     let mut hover_color = LIGHTGRAY;
     match params.theme {
@@ -50,7 +49,7 @@ impl UiBox {
       None => ()
     }
     Self {
-      id: params.id,
+      id,
       event: UiAction::None,
       holding: false,
       children: Vec::new(),

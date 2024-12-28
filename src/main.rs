@@ -87,8 +87,7 @@ async fn main() {
 		// dialog box
 		let mut pos_size = UiRect::from_px(100.0, 100.0, 300.0, 25.0);
 		pos_size.x = UiSize::Percent(0.5);
-		let dialog = UiBox::new(UiBoxParams {
-			id: 4,
+		let dialog = UiBox::new(4, UiBoxParams {
 			pos_size,
 			alignment: UiAlign::BottomRight,
 			draggable: true,
@@ -100,19 +99,19 @@ async fn main() {
 			dialog.color = root.theme.secondary[2];
 			dialog.hover_color = root.theme.secondary[3];
 
-			let dialog_body = UiBox::new(UiBoxParams {
-				id: 5,
+			let dialog_body = UiBox::new(5, UiBoxParams {
 				pos_size: UiRect::from_px(0.0, 25.0, 300.0, 100.0),
 				draggable: false,
 				show_hover: false,
 				theme: Some(&root.theme),
 				..Default::default()
 			}).with(|body| {
-				let dialog_txt = UiText::new(
-					6, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false
-				);
-				let dialog_btn = UiButton::new(UiButtonParams {
-					id: 7,
+				let dialog_txt = UiText::new(6, UiTextParams {
+					text: "Drag me".to_owned(),
+					pos_size: UiRect::from_px(10.0, 10.0, 10.0, 10.0),
+					..Default::default()
+				});
+				let dialog_btn = UiButton::new(7, UiButtonParams {
 					pos_size: UiRect::from_px(10.0, 60.0, 100.0, 30.0),
 					theme: Some(&root.theme),
 					..Default::default()
@@ -126,8 +125,7 @@ async fn main() {
 	});
 
 	// nav bar
-	let mut nav = UiBox::new(UiBoxParams {
-		id: 1,
+	let mut nav = UiBox::new(1, UiBoxParams {
 		pos_size: UiRect{
 			x: UiSize::Px(0.0),
 			y: UiSize::Px(0.0),
@@ -138,8 +136,7 @@ async fn main() {
 		..Default::default()
 	});
 	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
-	let search_btn = UiButton::new(UiButtonParams {
-		id: 3,
+	let search_btn = UiButton::new(3, UiButtonParams {
 		pos_size: UiRect::from_px(510.0, 10.0, 100.0, 30.0),
 		text: "Search".to_owned(),
 		alignment: UiAlign::TopCenter,

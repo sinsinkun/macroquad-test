@@ -14,6 +14,7 @@ mod ui_box;
 pub use ui_box::UiBoxParams;
 pub use ui_box::UiBox;
 mod ui_text;
+pub use ui_text::UiTextParams;
 pub use ui_text::UiText;
 mod ui_button;
 pub use ui_button::UiButtonParams;

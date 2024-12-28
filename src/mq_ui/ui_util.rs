@@ -198,7 +198,7 @@ pub(crate) fn update_children(
         e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
       UiElement::Text(e) => {
-        e.update(target, parent_rect, mouse_pos, mouse_delta, l_mouse, r_mouse);
+        e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse);
       }
       UiElement::Button(e) => {
         e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse);

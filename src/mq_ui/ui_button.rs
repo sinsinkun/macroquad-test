@@ -2,8 +2,8 @@ use macroquad::prelude::*;
 use crate::mq_ui::*;
 
 /// helper struct for building boxes
+#[derive(Debug, Clone)]
 pub struct UiButtonParams<'a> {
-  pub id: u32,
   pub pos_size: UiRect,
   pub alignment: UiAlign,
   pub text: String,
@@ -12,7 +12,6 @@ pub struct UiButtonParams<'a> {
 impl Default for UiButtonParams<'_> {
   fn default() -> Self {
     Self {
-      id: rand(),
       pos_size: UiRect::from_px(0.0, 0.0, 100.0, 60.0),
       alignment: UiAlign::TopLeft,
       text: "Button".to_owned(),
@@ -36,7 +35,7 @@ pub struct UiButton {
   pub data: Option<UiMetaData>
 }
 impl UiButton {
-  pub fn new(params: UiButtonParams) -> Self {
+  pub fn new(id:u32, params: UiButtonParams) -> Self {
     let mut color = GRAY;
     let mut hover_color = LIGHTGRAY;
     let mut hold_color = BLUE;
@@ -49,7 +48,7 @@ impl UiButton {
       None => ()
     };
     Self {
-      id: params.id,
+      id,
       event: UiAction::None,
       holding: false,
       rel_bounds: params.pos_size,

@@ -119,11 +119,3 @@ pub struct UiRect {
   w: UiSize,
   h: UiSize,
 }
-
-#[derive(Debug, Clone, Copy)]
-pub struct UiMargin {
-  t: UiSize,
-  l: UiSize,
-  r: UiSize,
-  b: UiSize,
-}

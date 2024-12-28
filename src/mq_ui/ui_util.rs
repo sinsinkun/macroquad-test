@@ -68,7 +68,6 @@ pub(crate) fn update_position(
 pub(crate) fn update_position_adv(
   prev_abs_bounds: &Rect,
   prev_rel_bounds: &UiRect,
-  margin: &UiMargin,
   alignment: &UiAlign,
   parent_rect: &Rect,
   mouse_delta: &(f32, f32),
@@ -95,25 +94,58 @@ pub(crate) fn update_position_adv(
       rel_bounds.y += mouse_delta.1 / parent_rect.h;
     }
   } else {
-    // maintain relative distance to parent
-    if rel_bounds.x.is_px() {
-      abs_bounds.x = parent_rect.x + rel_bounds.x.value();
-    }
-    if rel_bounds.x.is_percent() {
-      abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
-    }
-    if rel_bounds.y.is_px() {
-      abs_bounds.y = parent_rect.y + rel_bounds.y.value();
-    }
-    if rel_bounds.y.is_percent() {
-      abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h);
-    }
     // maintain relative size
     if rel_bounds.w.is_percent() {
       abs_bounds.w = rel_bounds.w.value() * parent_rect.w;
     }
     if rel_bounds.h.is_percent() {
       abs_bounds.h = rel_bounds.h.value() * parent_rect.h;
+    }
+    // maintain relative x distance to parent
+    match alignment {
+      UiAlign::TopLeft | UiAlign::BottomLeft => {
+        if rel_bounds.x.is_px() {
+          abs_bounds.x = parent_rect.x + rel_bounds.x.value();
+        }
+        if rel_bounds.x.is_percent() {
+          abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
+        }
+      }
+      UiAlign::TopCenter | UiAlign::FullCenter | UiAlign::BottomCenter => {
+        abs_bounds.x = (parent_rect.x + parent_rect.w / 2.0) - abs_bounds.w / 2.0;
+      }
+      UiAlign::TopRight | UiAlign::BottomRight => {
+        if rel_bounds.x.is_px() {
+          abs_bounds.x = (parent_rect.x + parent_rect.w) - abs_bounds.w - rel_bounds.x.value();
+        }
+        if rel_bounds.x.is_percent() {
+          abs_bounds.x = (parent_rect.x + parent_rect.w) - abs_bounds.w - (rel_bounds.x.value() * parent_rect.w);
+        }
+      }
+      _ => ()
+    }
+    // maintain relative y distance to parent
+    match alignment {
+      UiAlign::TopLeft | UiAlign::TopCenter | UiAlign::TopRight => {
+        if rel_bounds.y.is_px() {
+          abs_bounds.y = parent_rect.y + rel_bounds.y.value();
+        }
+        if rel_bounds.y.is_percent() {
+          abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h)
+        }
+      }
+      UiAlign::FullCenter => {
+        abs_bounds.y = (parent_rect.y + parent_rect.h / 2.0) - abs_bounds.h / 2.0;
+      }
+      UiAlign::BottomLeft | UiAlign::BottomCenter | UiAlign::BottomRight => {
+        if rel_bounds.y.is_px() {
+          abs_bounds.y = parent_rect.y + parent_rect.h - abs_bounds.h - rel_bounds.y.value();
+        }
+        if rel_bounds.y.is_percent() {
+          abs_bounds.y = parent_rect.y + parent_rect.h - abs_bounds.h - (rel_bounds.y.value() * parent_rect.h);
+        }
+      }
+      _ => ()
     }
   }
   // return new positions

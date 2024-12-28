@@ -10,6 +10,7 @@ pub use ui_theme::UiTheme;
 mod ui_root;
 pub use ui_root::UiRoot;
 mod ui_box;
+pub use ui_box::UiBoxParams;
 pub use ui_box::UiBox;
 mod ui_text;
 pub use ui_text::UiText;
@@ -106,7 +107,9 @@ pub enum UiAlign {
   TopLeft,
   TopCenter,
   TopRight,
+  CenterLeft,
   FullCenter,
+  CenterRight,
   BottomLeft,
   BottomCenter,
   BottomRight,
@@ -114,8 +117,26 @@ pub enum UiAlign {
 
 #[derive(Debug, Clone, Copy)]
 pub struct UiRect {
-  x: UiSize,
-  y: UiSize,
-  w: UiSize,
-  h: UiSize,
+  pub x: UiSize,
+  pub y: UiSize,
+  pub w: UiSize,
+  pub h: UiSize,
+}
+impl UiRect {
+  pub fn from_px(x: f32, y: f32, w: f32, h: f32) -> Self {
+    Self {
+      x: UiSize::Px(x),
+      y: UiSize::Px(y),
+      w: UiSize::Px(w),
+      h: UiSize::Px(h),
+    }
+  }
+  pub fn from_percent(x: f32, y: f32, w: f32, h: f32) -> Self {
+    Self {
+      x: UiSize::Percent(x),
+      y: UiSize::Percent(y),
+      w: UiSize::Percent(w),
+      h: UiSize::Percent(h),
+    }
+  }
 }

@@ -85,16 +85,29 @@ async fn main() {
 		};
 
 		// dialog box
-		let dialog = UiBox::new(
-			4, Rect::new(200.0, 200.0, 300.0, 25.0), true, true, Some(&root.theme)
-		).with(|dialog| {
+		let mut pos_size = UiRect::from_px(100.0, 100.0, 300.0, 25.0);
+		pos_size.x = UiSize::Percent(0.5);
+		let dialog = UiBox::new(UiBoxParams {
+			id: 4,
+			pos_size,
+			alignment: UiAlign::BottomRight,
+			draggable: true,
+			show_hover: true,
+			theme: Some(&root.theme),
+			..Default::default()
+		}).with(|dialog| {
 			// modify colors directly
 			dialog.color = root.theme.secondary[2];
 			dialog.hover_color = root.theme.secondary[3];
 
-			let dialog_body = UiBox::new(
-				5, Rect::new(0.0, 25.0, 300.0, 100.0), false, false, Some(&root.theme)
-			).with(|body| {
+			let dialog_body = UiBox::new(UiBoxParams {
+				id: 5,
+				pos_size: UiRect::from_px(0.0, 25.0, 300.0, 100.0),
+				draggable: false,
+				show_hover: false,
+				theme: Some(&root.theme),
+				..Default::default()
+			}).with(|body| {
 				let dialog_txt = UiText::new(
 					6, Rect::new(10.0, 10.0, 10.0, 10.0), "Drag me".to_owned(), false
 				);
@@ -110,14 +123,24 @@ async fn main() {
 	});
 
 	// nav bar
-	let mut nav = UiBox::new(1, Rect::new(0.0, 0.0, 800.0, 50.0), false, false, Some(&ui.theme));
+	let mut nav = UiBox::new(UiBoxParams {
+		id: 1,
+		pos_size: UiRect{
+			x: UiSize::Px(0.0),
+			y: UiSize::Px(0.0),
+			w: UiSize::Percent(1.0),
+			h: UiSize::Px(50.0),
+		},
+		theme: Some(&ui.theme),
+		..Default::default()
+	});
 	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
 	let search_btn = UiButton::new(3, Rect::new(510.0, 10.0, 100.0, 30.0), "Search".to_owned(), Some(&ui.theme));
 	nav.add_child(UiElement::Input(search_input));
 	nav.add_child(UiElement::Button(search_btn));
 	ui.add_child(UiElement::Box(nav));
 
-	let bg_color = ui.theme.primary;
+	let bg_color = ui.theme.accent[0];
 
 	loop {
 		let win_size = (window::screen_width(), window::screen_height());

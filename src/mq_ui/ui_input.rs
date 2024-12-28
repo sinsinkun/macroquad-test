@@ -46,7 +46,7 @@ impl UiInput {
   pub(crate) fn update(
     &mut self,
     target: &mut Option<UiElement>,
-    parent_origin: &(f32, f32),
+    parent_rect: &Rect,
     mouse_pos: &(f32, f32),
     mouse_delta: &(f32, f32),
     l_mouse: &UiMouseAction,
@@ -56,7 +56,7 @@ impl UiInput {
     update_position(
       &mut self.abs_origin,
       &mut self.origin,
-      parent_origin,
+      &(parent_rect.x, parent_rect.y),
       mouse_delta,
       false,
       self.holding,

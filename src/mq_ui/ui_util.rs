@@ -33,6 +33,15 @@ pub fn mix_colors(color_1: &Color, color_2: &Color, percent: f32) -> Color {
   c
 }
 
+pub(crate) fn rect_subtract(a: &Rect, b: &Rect) -> Rect {
+  Rect {
+    x: a.x - b.x,
+    y: a.y - b.y,
+    w: a.w - b.w,
+    h: a.h - b.h,
+  }
+}
+
 pub(crate) fn get_mouse_actions() -> (UiMouseAction, UiMouseAction) {
   let mut l_mouse = UiMouseAction::None;
   let mut r_mouse = UiMouseAction::None;
@@ -68,14 +77,29 @@ pub(crate) fn update_position(
 pub(crate) fn update_position_adv(
   prev_abs_bounds: &Rect,
   prev_rel_bounds: &UiRect,
-  alignment: &UiAlign,
   parent_rect: &Rect,
+  parent_delta: &(f32, f32),
+  alignment: &UiAlign,
   mouse_delta: &(f32, f32),
   draggable: bool,
   holding: bool,
 ) -> (Rect, UiRect) {
   let mut abs_bounds = *prev_abs_bounds;
   let mut rel_bounds = *prev_rel_bounds;
+  // maintain relative size
+  if rel_bounds.w.is_px() {
+    abs_bounds.w = rel_bounds.w.value();
+  }
+  if rel_bounds.w.is_percent() {
+    abs_bounds.w = rel_bounds.w.value() * parent_rect.w;
+  }
+  if rel_bounds.h.is_px() {
+    abs_bounds.h = rel_bounds.h.value();
+  }
+  if rel_bounds.h.is_percent() {
+    abs_bounds.h = rel_bounds.h.value() * parent_rect.h;
+  }
+  // drag and parent relative position
   if draggable && holding {
     // update absolute positioning
     abs_bounds.x += mouse_delta.0;
@@ -94,58 +118,62 @@ pub(crate) fn update_position_adv(
       rel_bounds.y += mouse_delta.1 / parent_rect.h;
     }
   } else {
-    // maintain relative size
-    if rel_bounds.w.is_percent() {
-      abs_bounds.w = rel_bounds.w.value() * parent_rect.w;
+    // maintain relative distance to parent
+    if rel_bounds.x.is_px() {
+      abs_bounds.x = parent_rect.x + rel_bounds.x.value();
+      // translate parent resize
+      match alignment {
+        UiAlign::TopCenter | UiAlign::FullCenter | UiAlign::BottomCenter => {
+          abs_bounds.x += parent_delta.0 / 2.0;
+          rel_bounds.x += parent_delta.0 / 2.0;
+        }
+        UiAlign::TopRight | UiAlign::CenterRight | UiAlign::BottomRight => {
+          abs_bounds.x += parent_delta.0;
+          rel_bounds.x += parent_delta.0;
+        }
+        _ => ()
+      }
     }
-    if rel_bounds.h.is_percent() {
-      abs_bounds.h = rel_bounds.h.value() * parent_rect.h;
+    if rel_bounds.x.is_percent() {
+      abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
+      // translate parent resize
+      match alignment {
+        UiAlign::TopCenter | UiAlign::FullCenter | UiAlign::BottomCenter => {
+          abs_bounds.x += parent_delta.0 / 2.0;
+        }
+        UiAlign::TopRight | UiAlign::CenterRight | UiAlign::BottomRight => {
+          abs_bounds.x += parent_delta.0;
+        }
+        _ => ()
+      }
     }
-    // maintain relative x distance to parent
-    match alignment {
-      UiAlign::TopLeft | UiAlign::BottomLeft => {
-        if rel_bounds.x.is_px() {
-          abs_bounds.x = parent_rect.x + rel_bounds.x.value();
+    if rel_bounds.y.is_px() {
+      abs_bounds.y = parent_rect.y + rel_bounds.y.value();
+      // translate parent resize
+      match alignment {
+        UiAlign::CenterLeft | UiAlign::FullCenter | UiAlign::CenterRight => {
+          abs_bounds.y += parent_delta.1 / 2.0;
+          rel_bounds.y += parent_delta.1 / 2.0;
         }
-        if rel_bounds.x.is_percent() {
-          abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
+        UiAlign::BottomLeft | UiAlign::BottomCenter | UiAlign::BottomRight => {
+          abs_bounds.y += parent_delta.1;
+          rel_bounds.y += parent_delta.1;
         }
+        _ => ()
       }
-      UiAlign::TopCenter | UiAlign::FullCenter | UiAlign::BottomCenter => {
-        abs_bounds.x = (parent_rect.x + parent_rect.w / 2.0) - abs_bounds.w / 2.0;
-      }
-      UiAlign::TopRight | UiAlign::BottomRight => {
-        if rel_bounds.x.is_px() {
-          abs_bounds.x = (parent_rect.x + parent_rect.w) - abs_bounds.w - rel_bounds.x.value();
-        }
-        if rel_bounds.x.is_percent() {
-          abs_bounds.x = (parent_rect.x + parent_rect.w) - abs_bounds.w - (rel_bounds.x.value() * parent_rect.w);
-        }
-      }
-      _ => ()
     }
-    // maintain relative y distance to parent
-    match alignment {
-      UiAlign::TopLeft | UiAlign::TopCenter | UiAlign::TopRight => {
-        if rel_bounds.y.is_px() {
-          abs_bounds.y = parent_rect.y + rel_bounds.y.value();
+    if rel_bounds.y.is_percent() {
+      abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h);
+      // translate parent resize
+      match alignment {
+        UiAlign::CenterLeft | UiAlign::FullCenter | UiAlign::CenterRight => {
+          abs_bounds.y += parent_delta.1 / 2.0;
         }
-        if rel_bounds.y.is_percent() {
-          abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h)
+        UiAlign::BottomLeft | UiAlign::BottomCenter | UiAlign::BottomRight => {
+          abs_bounds.y += parent_delta.1;
         }
+        _ => ()
       }
-      UiAlign::FullCenter => {
-        abs_bounds.y = (parent_rect.y + parent_rect.h / 2.0) - abs_bounds.h / 2.0;
-      }
-      UiAlign::BottomLeft | UiAlign::BottomCenter | UiAlign::BottomRight => {
-        if rel_bounds.y.is_px() {
-          abs_bounds.y = parent_rect.y + parent_rect.h - abs_bounds.h - rel_bounds.y.value();
-        }
-        if rel_bounds.y.is_percent() {
-          abs_bounds.y = parent_rect.y + parent_rect.h - abs_bounds.h - (rel_bounds.y.value() * parent_rect.h);
-        }
-      }
-      _ => ()
     }
   }
   // return new positions
@@ -155,7 +183,8 @@ pub(crate) fn update_position_adv(
 pub(crate) fn update_children(
   children: &mut Vec<UiElement>, 
   target: &mut Option<UiElement>,
-  parent_origin: &(f32, f32),
+  parent_rect: &Rect,
+  parent_delta: &(f32, f32),
   mouse_pos: &(f32, f32),
   mouse_delta: &(f32, f32),
   l_mouse: &UiMouseAction,
@@ -166,16 +195,16 @@ pub(crate) fn update_children(
   for elem in children.iter_mut().rev() {
     match elem {
       UiElement::Box(e) => {
-        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
+        e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
       UiElement::Text(e) => {
-        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
+        e.update(target, parent_rect, mouse_pos, mouse_delta, l_mouse, r_mouse);
       }
       UiElement::Button(e) => {
-        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse);
+        e.update(target, parent_rect, mouse_pos, mouse_delta, l_mouse, r_mouse);
       }
       UiElement::Input(e) => {
-        e.update(target, parent_origin, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
+        e.update(target, parent_rect, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
     }
   }

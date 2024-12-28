@@ -1,5 +1,28 @@
 use macroquad::prelude::*;
+use macroquad::rand::rand;
 use crate::mq_ui::*;
+
+/// helper struct for building boxes
+pub struct UiBoxParams<'a> {
+  pub id: u32,
+  pub pos_size: UiRect,
+  pub alignment: UiAlign,
+  pub draggable: bool,
+  pub show_hover: bool,
+  pub theme: Option<&'a UiTheme>,
+}
+impl Default for UiBoxParams<'_> {
+  fn default() -> Self {
+    Self {
+      id: rand(),
+      pos_size: UiRect::from_px(0.0, 0.0, 100.0, 60.0),
+      alignment: UiAlign::TopLeft,
+      draggable: false,
+      show_hover: false,
+      theme: None,
+    }
+  }
+}
 
 #[derive(Debug, Clone)]
 pub struct UiBox {
@@ -7,9 +30,9 @@ pub struct UiBox {
   pub event: UiAction,
   holding: bool,
   pub(crate) children: Vec<UiElement>,
-  origin: (f32, f32),
-  abs_origin: (f32, f32),
-  size: (f32, f32),
+  abs_bounds: Rect,
+  rel_bounds: UiRect,
+  alignment: UiAlign,
   draggable: bool,
   pub show_hover: bool,
   pub color: Color,
@@ -17,10 +40,10 @@ pub struct UiBox {
   pub data: Option<UiMetaData>
 }
 impl UiBox {
-  pub fn new(id: u32, pos_size: Rect, draggable: bool, show_hover: bool, theme: Option<&UiTheme>) -> Self {
+  pub fn new(params: UiBoxParams) -> Self {
     let mut color = GRAY;
     let mut hover_color = LIGHTGRAY;
-    match theme {
+    match params.theme {
       Some(tm) => {
         color = tm.secondary[0];
         hover_color = tm.secondary[1];
@@ -28,15 +51,15 @@ impl UiBox {
       None => ()
     }
     Self {
-      id,
+      id: params.id,
       event: UiAction::None,
       holding: false,
       children: Vec::new(),
-      origin: (pos_size.x, pos_size.y),
-      abs_origin: (pos_size.x, pos_size.y),
-      size: (pos_size.w, pos_size.h),
-      draggable,
-      show_hover,
+      rel_bounds: params.pos_size,
+      abs_bounds: Rect::new(0.0, 0.0, 0.0, 0.0),
+      alignment: params.alignment,
+      draggable: params.draggable,
+      show_hover: params.show_hover,
       color,
       hover_color,
       data: None,
@@ -54,26 +77,33 @@ impl UiBox {
   pub(crate) fn update(
     &mut self,
     target: &mut Option<UiElement>,
-    parent_origin: &(f32, f32),
+    parent_rect: &Rect,
+    parent_delta: &(f32, f32),
     mouse_pos: &(f32, f32),
     mouse_delta: &(f32, f32),
     l_mouse: &UiMouseAction,
     r_mouse: &UiMouseAction,
     time_delta: &f32,
   ) {
-    update_position(
-      &mut self.abs_origin,
-      &mut self.origin,
-      parent_origin,
+    let pos_update = update_position_adv(
+      &self.abs_bounds,
+      &self.rel_bounds,
+      parent_rect,
+      parent_delta,
+      &self.alignment,
       mouse_delta,
       self.draggable,
       self.holding,
     );
+    let size_delta = (pos_update.0.x - self.abs_bounds.x, pos_update.0.y - self.abs_bounds.y);
+    self.abs_bounds = pos_update.0;
+    self.rel_bounds = pos_update.1;
     // update children
     update_children(
       &mut self.children,
       target,
-      &self.abs_origin,
+      &self.abs_bounds,
+      &size_delta,
       mouse_pos,
       mouse_delta,
       l_mouse,
@@ -81,10 +111,7 @@ impl UiBox {
       time_delta,
     );
     // update self
-    let bounds = Rect {
-      x: self.abs_origin.0, y: self.abs_origin.1, w: self.size.0, h: self.size.1
-    };
-    let inbounds = point_in_rect(mouse_pos, &bounds);
+    let inbounds = point_in_rect(mouse_pos, &self.abs_bounds);
     let mut action_available = target.is_none();
     self.event = update_event(
       &mut action_available,
@@ -108,17 +135,17 @@ impl UiBox {
       _ => self.color
     };
     draw_rectangle(
-      self.abs_origin.0 - 1.0,
-      self.abs_origin.1 - 1.0,
-      self.size.0 + 4.0,
-      self.size.1 + 6.0,
+      self.abs_bounds.x - 1.0,
+      self.abs_bounds.y - 1.0,
+      self.abs_bounds.w + 4.0,
+      self.abs_bounds.h + 6.0,
       theme.shadow_color,
     );
     draw_rectangle(
-      self.abs_origin.0,
-      self.abs_origin.1,
-      self.size.0,
-      self.size.1,
+      self.abs_bounds.x,
+      self.abs_bounds.y,
+      self.abs_bounds.w,
+      self.abs_bounds.h,
       active_color,
     );
     // render children

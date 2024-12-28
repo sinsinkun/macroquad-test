@@ -9,14 +9,18 @@ pub struct UiRoot {
   pub theme: UiTheme,
   children: Vec<UiElement>,
   prev_mouse_pos: (f32, f32),
+  prev_screen: Rect,
   id_counter: u32,
 }
 impl UiRoot {
   pub fn new() -> Self {
+    let w = window::screen_width();
+    let h = window::screen_height();
     Self {
       theme: UiTheme::default(),
       children: Vec::new(),
       prev_mouse_pos: (0.0, 0.0),
+      prev_screen: Rect::new(0.0, 0.0, w, h),
       id_counter: 1,
     }
   }
@@ -39,15 +43,19 @@ impl UiRoot {
       mouse_pos.1 - self.prev_mouse_pos.1
     );
     self.prev_mouse_pos = mouse_pos;
-    let origin = (0.0, 0.0);
-
+    let w = window::screen_width();
+    let h = window::screen_height();
+    let scrn = Rect::new(0.0, 0.0, w, h);
+    let scrn_delta = (w - self.prev_screen.w, h - self.prev_screen.h);
+    self.prev_screen = scrn;
     let (l_mouse, r_mouse) = get_mouse_actions();
     let t_delta = get_frame_time();
     // update children
     update_children(
       &mut self.children,
       &mut action_target,
-      &origin,
+      &scrn,
+      &scrn_delta,
       &mouse_pos,
       &mouse_delta,
       &l_mouse,
@@ -56,6 +64,15 @@ impl UiRoot {
     );
     // update cursor
     let mut cursor_icon = CursorIcon::Default;
+    let scrn_left = Rect::new(-1.0, 0.0, 2.0, h);
+    let scrn_right = Rect::new(w-2.0, 0.0, 3.0, h);
+    let scrn_bottom = Rect::new(0.0, h-2.0, w, 3.0);
+    if point_in_rect(&mouse_pos, &scrn_left) || point_in_rect(&mouse_pos, &scrn_right) {
+      cursor_icon = CursorIcon::EWResize;
+    }
+    if point_in_rect(&mouse_pos, &scrn_bottom) {
+      cursor_icon = CursorIcon::NSResize;
+    }
     if action_target.is_some() {
       let event;
       let show_hover;
@@ -72,12 +89,12 @@ impl UiRoot {
         UiElement::Text(e) => {
           event = e.event.clone();
           show_hover = false;
-        },
+        }
         UiElement::Input(e) => {
           event = e.event.clone();
           show_hover = true;
           text_input = true;
-        },
+        }
       };
       match event {
         UiAction::Hover | UiAction::Hold | UiAction::LClick | UiAction::LRelease => {

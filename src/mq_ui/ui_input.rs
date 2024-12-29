@@ -1,5 +1,4 @@
 use std::collections::HashSet;
-use macroquad::prelude::*;
 use crate::mq_ui::*;
 
 /// helper struct for building inputs

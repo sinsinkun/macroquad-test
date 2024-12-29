@@ -1,4 +1,3 @@
-use macroquad::prelude::*;
 use macroquad::window;
 use miniquad::window::set_mouse_cursor;
 use miniquad::CursorIcon;

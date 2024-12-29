@@ -68,14 +68,12 @@ pub(crate) fn update_position_adv(
   // maintain relative size
   if rel_bounds.w.is_px() {
     abs_bounds.w = rel_bounds.w.value();
-  }
-  if rel_bounds.w.is_percent() {
+  } else if rel_bounds.w.is_percent() {
     abs_bounds.w = rel_bounds.w.value() * parent_rect.w;
   }
   if rel_bounds.h.is_px() {
     abs_bounds.h = rel_bounds.h.value();
-  }
-  if rel_bounds.h.is_percent() {
+  } else if rel_bounds.h.is_percent() {
     abs_bounds.h = rel_bounds.h.value() * parent_rect.h;
   }
   // drag and parent relative position
@@ -86,14 +84,12 @@ pub(crate) fn update_position_adv(
     // update relative positioning
     if rel_bounds.x.is_px() {
       rel_bounds.x += mouse_delta.0;
-    }
-    if rel_bounds.x.is_percent() {
+    } else if rel_bounds.x.is_percent() {
       rel_bounds.x += mouse_delta.0 / parent_rect.w;
     }
     if rel_bounds.y.is_px() {
       rel_bounds.y += mouse_delta.1;
-    }
-    if rel_bounds.y.is_percent() {
+    } else if rel_bounds.y.is_percent() {
       rel_bounds.y += mouse_delta.1 / parent_rect.h;
     }
   } else {
@@ -112,8 +108,7 @@ pub(crate) fn update_position_adv(
         }
         _ => ()
       }
-    }
-    if rel_bounds.x.is_percent() {
+    } else if rel_bounds.x.is_percent() {
       abs_bounds.x = parent_rect.x + (rel_bounds.x.value() * parent_rect.w);
       // translate parent resize
       match alignment {
@@ -140,8 +135,7 @@ pub(crate) fn update_position_adv(
         }
         _ => ()
       }
-    }
-    if rel_bounds.y.is_percent() {
+    } else if rel_bounds.y.is_percent() {
       abs_bounds.y = parent_rect.y + (rel_bounds.y.value() * parent_rect.h);
       // translate parent resize
       match alignment {

@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-/// helper struct for building boxes
+/// helper struct for building text
 #[derive(Debug, Clone)]
 pub struct UiTextParams<'a> {
   pub pos_size: UiRect,
@@ -14,7 +14,7 @@ pub struct UiTextParams<'a> {
 impl Default for UiTextParams<'_> {
   fn default() -> Self {
     Self {
-      pos_size: UiRect::from_px(0.0, 0.0, 100.0, 60.0),
+      pos_size: UiRect::from_px(0.0, 0.0, 10.0, 10.0),
       alignment: UiAlign::TopLeft,
       text: "[Display Text]".to_owned(),
       font_size: 18,

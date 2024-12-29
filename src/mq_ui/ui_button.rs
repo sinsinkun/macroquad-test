@@ -1,7 +1,7 @@
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
-/// helper struct for building boxes
+/// helper struct for building buttons
 #[derive(Debug, Clone)]
 pub struct UiButtonParams<'a> {
   pub pos_size: UiRect,
@@ -12,7 +12,7 @@ pub struct UiButtonParams<'a> {
 impl Default for UiButtonParams<'_> {
   fn default() -> Self {
     Self {
-      pos_size: UiRect::from_px(0.0, 0.0, 100.0, 60.0),
+      pos_size: UiRect::from_px(0.0, 0.0, 100.0, 30.0),
       alignment: UiAlign::TopLeft,
       text: "Button".to_owned(),
       theme: None,

@@ -2,14 +2,33 @@ use std::collections::HashSet;
 use macroquad::prelude::*;
 use crate::mq_ui::*;
 
+/// helper struct for building inputs
+#[derive(Debug, Clone)]
+pub struct UiInputParams<'a> {
+  pub pos_size: UiRect,
+  pub alignment: UiAlign,
+  pub placeholder: String,
+  pub theme: Option<&'a UiTheme>,
+}
+impl Default for UiInputParams<'_> {
+  fn default() -> Self {
+    Self {
+      pos_size: UiRect::from_px(0.0, 0.0, 200.0, 30.0),
+      alignment: UiAlign::TopLeft,
+      placeholder: "Input".to_owned(),
+      theme: None,
+    }
+  }
+}
+
 #[derive(Debug, Clone)]
 pub struct UiInput {
   pub id: u32,
   pub event: UiAction,
   holding: bool,
-  origin: (f32, f32),
-  abs_origin: (f32, f32),
-  size: (f32, f32),
+  abs_bounds: Rect,
+  rel_bounds: UiRect,
+  alignment: UiAlign,
   pub is_active: bool,
   pub input: String,
   pub placeholder: String,
@@ -20,18 +39,18 @@ pub struct UiInput {
   pub data: Option<UiMetaData>
 }
 impl UiInput {
-  pub fn new(id: u32, pos_size: Rect, placeholder: String) -> Self {
-    let target = render_target_msaa(pos_size.w as u32, pos_size.h as u32, 4);
+  pub fn new(id: u32, params: UiInputParams) -> Self {
+    let target = render_target_msaa(200, 30, 4);
     Self {
       id,
       event: UiAction::None,
       holding: false,
-      origin: (pos_size.x, pos_size.y),
-      abs_origin: (pos_size.x, pos_size.y),
-      size: (pos_size.w, pos_size.h),
+      rel_bounds: params.pos_size,
+      abs_bounds: Rect::new(0.0, 0.0, 0.0, 0.0),
+      alignment: params.alignment,
       is_active: false,
       input: String::new(),
-      placeholder,
+      placeholder: params.placeholder,
       blink_counter: 0.0,
       show_blink: false,
       bksp_cooldown: 0.0,
@@ -47,25 +66,28 @@ impl UiInput {
     &mut self,
     target: &mut Option<UiElement>,
     parent_rect: &Rect,
+    parent_delta: &(f32, f32),
     mouse_pos: &(f32, f32),
     mouse_delta: &(f32, f32),
     l_mouse: &UiMouseAction,
     r_mouse: &UiMouseAction,
     time_delta: &f32,
   ) {
-    update_position(
-      &mut self.abs_origin,
-      &mut self.origin,
-      &(parent_rect.x, parent_rect.y),
+    let pos_update = update_position_adv(
+      &self.abs_bounds,
+      &self.rel_bounds,
+      parent_rect,
+      parent_delta,
+      &self.alignment,
       mouse_delta,
       false,
       self.holding,
     );
+    self.remake_target(&pos_update.0);
+    self.abs_bounds = pos_update.0;
+    self.rel_bounds = pos_update.1;
     // update self
-    let bounds = Rect {
-      x: self.abs_origin.0, y: self.abs_origin.1, w: self.size.0, h: self.size.1
-    };
-    let inbounds = point_in_rect(mouse_pos, &bounds);
+    let inbounds = point_in_rect(mouse_pos, &self.abs_bounds);
     let mut action_available = target.is_none();
     self.event = update_event(
       &mut action_available,
@@ -133,35 +155,43 @@ impl UiInput {
     let txt_size = measure_text(&self.input, theme.font.as_ref(), theme.font_size, 1.0);
     self.draw_to_target(theme, &(txt_size.width, txt_size.height), active_color);
     // draw target
-    draw_texture(&self.target.texture, self.abs_origin.0, self.abs_origin.1, WHITE);
+    draw_texture(&self.target.texture, self.abs_bounds.x, self.abs_bounds.y, WHITE);
     // draw blinker
     if self.is_active && self.show_blink {
-      let mut blinker_x = self.abs_origin.0 + txt_size.width + 3.0;
-      if txt_size.width > self.size.0 {
+      let mut blinker_x = self.abs_bounds.x + txt_size.width + 3.0;
+      if txt_size.width > self.abs_bounds.w {
         // scroll text so its right aligned
-        blinker_x = self.abs_origin.0 + self.size.0 - 3.0;
+        blinker_x = self.abs_bounds.x + self.abs_bounds.w - 3.0;
       }
-      let blinker_y = self.abs_origin.1 + 2.0;
-      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.size.1 - 4.0, 2.0, contrast_color(&active_color));
+      let blinker_y = self.abs_bounds.y + 2.0;
+      draw_line(blinker_x, blinker_y, blinker_x, blinker_y + self.abs_bounds.h - 4.0, 2.0, contrast_color(&active_color));
     }
     // draw border
-    draw_rectangle_lines(self.abs_origin.0, self.abs_origin.1, self.size.0, self.size.1, 1.5, BLACK);
+    draw_rectangle_lines(self.abs_bounds.x, self.abs_bounds.y, self.abs_bounds.w, self.abs_bounds.h, 1.5, BLACK);
+  }
+  fn remake_target(&mut self, new_bounds: &Rect) {
+    let dx = new_bounds.w - self.abs_bounds.w;
+    let dy = new_bounds.h - self.abs_bounds.h;
+    if dx != 0.0 && dy != 0.0 {
+      // self.target = render_target_msaa(new_bounds.w as u32, new_bounds.h as u32, 4);
+      // println!("Remaking target - {:?} : {:?}", (dx, dy), self.target.texture.size());
+    }
   }
   fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32), active_color: Color) {
     // draw to target
     set_camera(&Camera2D {
-      zoom: vec2(2.0/self.size.0, 2.0/self.size.1),
+      zoom: vec2(2.0/self.abs_bounds.w, 2.0/self.abs_bounds.h),
       render_target: Some(self.target.clone()),
       ..Default::default()
     });
     clear_background(active_color);
     // draw text
-    let mut txt_x = (self.size.0 / -2.0) + 3.0;
-    let txt_y = (self.size.1 / -2.0) + self.size.1 - 10.0;
+    let mut txt_x = (self.abs_bounds.w / -2.0) + 3.0;
+    let txt_y = (self.abs_bounds.h / -2.0) + self.abs_bounds.h - 10.0;
     let text_color = contrast_color(&active_color);
-    if txt_size.0 > self.size.0 {
+    if txt_size.0 > self.abs_bounds.w {
       // scroll text so its right aligned
-      txt_x = (self.size.0 / -2.0) - (txt_size.0 - self.size.0) - 3.0;
+      txt_x = (self.abs_bounds.w / -2.0) - (txt_size.0 - self.abs_bounds.w) - 3.0;
     }
     if self.is_active || !self.input.is_empty() {
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {

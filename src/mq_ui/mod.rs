@@ -20,6 +20,7 @@ mod ui_button;
 pub use ui_button::UiButtonParams;
 pub use ui_button::UiButton;
 mod ui_input;
+pub use ui_input::UiInputParams;
 pub use ui_input::UiInput;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

@@ -135,7 +135,12 @@ async fn main() {
 		theme: Some(&ui.theme),
 		..Default::default()
 	});
-	let search_input = UiInput::new(2, Rect::new(170.0, 10.0, 320.0, 30.0), "Search".to_owned());
+	let search_input = UiInput::new(2, UiInputParams {
+		pos_size: UiRect::from_px(170.0, 10.0, 320.0, 30.0),
+		alignment: UiAlign::TopCenter,
+		placeholder: "Search".to_owned(),
+		theme: Some(&ui.theme),
+	});
 	let search_btn = UiButton::new(3, UiButtonParams {
 		pos_size: UiRect::from_px(510.0, 10.0, 100.0, 30.0),
 		text: "Search".to_owned(),

@@ -40,11 +40,7 @@ pub struct UiInput {
 }
 impl UiInput {
   pub fn new(id: u32, params: UiInputParams) -> Self {
-    let mut target_w = 200;
-    let mut target_h = 30;
-    if params.pos_size.w.is_px() { target_w = params.pos_size.w.value() as u32; }
-    if params.pos_size.h.is_px() { target_h = params.pos_size.h.value() as u32; }
-    let target = render_target_msaa(target_w, target_h, 4);
+    let target = render_target_msaa(2000, 1000, 4);
     Self {
       id,
       event: UiAction::None,
@@ -87,7 +83,6 @@ impl UiInput {
       false,
       self.holding,
     );
-    self.remake_target(&pos_update.0);
     self.abs_bounds = pos_update.0;
     self.rel_bounds = pos_update.1;
     // update self
@@ -159,7 +154,10 @@ impl UiInput {
     let txt_size = measure_text(&self.input, theme.font.as_ref(), theme.font_size, 1.0);
     self.draw_to_target(theme, &(txt_size.width, txt_size.height), active_color);
     // draw target
-    draw_texture(&self.target.texture, self.abs_bounds.x, self.abs_bounds.y, WHITE);
+    draw_texture_ex(&self.target.texture, self.abs_bounds.x, self.abs_bounds.y, WHITE, DrawTextureParams {
+      source: Some(Rect::new(0.0, 0.0, self.abs_bounds.w, self.abs_bounds.h)),
+      ..Default::default()
+    });
     // draw blinker
     if self.is_active && self.show_blink {
       let mut blinker_x = self.abs_bounds.x + txt_size.width + 3.0;
@@ -173,30 +171,22 @@ impl UiInput {
     // draw border
     draw_rectangle_lines(self.abs_bounds.x, self.abs_bounds.y, self.abs_bounds.w, self.abs_bounds.h, 1.5, BLACK);
   }
-  /// FIX: re-creating renderTarget breaks the rendering somehow
-  fn remake_target(&mut self, new_bounds: &Rect) {
-    let dx = new_bounds.w - self.abs_bounds.w;
-    let dy = new_bounds.h - self.abs_bounds.h;
-    if dx != 0.0 && dy != 0.0 {
-      // self.target = render_target_msaa(new_bounds.w as u32, new_bounds.h as u32, 4);
-      // println!("Remaking target - {:?} : {:?}", (dx, dy), self.target.texture.size());
-    }
-  }
   fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32), active_color: Color) {
     // draw to target
     set_camera(&Camera2D {
-      zoom: vec2(2.0/self.abs_bounds.w, 2.0/self.abs_bounds.h),
+      zoom: vec2(0.001, 0.002),
+      target: vec2(1000.0, 500.0),
       render_target: Some(self.target.clone()),
       ..Default::default()
     });
     clear_background(active_color);
     // draw text
-    let mut txt_x = (self.abs_bounds.w / -2.0) + 3.0;
-    let txt_y = (self.abs_bounds.h / -2.0) + self.abs_bounds.h - 10.0;
+    let mut txt_x = 3.0;
+    let txt_y = self.abs_bounds.h - 10.0;
     let text_color = contrast_color(&active_color);
     if txt_size.0 > self.abs_bounds.w {
       // scroll text so its right aligned
-      txt_x = (self.abs_bounds.w / -2.0) - (txt_size.0 - self.abs_bounds.w) - 3.0;
+      txt_x = self.abs_bounds.w - txt_size.0 - 3.0;
     }
     if self.is_active || !self.input.is_empty() {
       draw_text_ex(&self.input, txt_x, txt_y, TextParams {

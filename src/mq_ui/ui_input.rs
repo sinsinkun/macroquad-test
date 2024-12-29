@@ -40,7 +40,11 @@ pub struct UiInput {
 }
 impl UiInput {
   pub fn new(id: u32, params: UiInputParams) -> Self {
-    let target = render_target_msaa(200, 30, 4);
+    let mut target_w = 200;
+    let mut target_h = 30;
+    if params.pos_size.w.is_px() { target_w = params.pos_size.w.value() as u32; }
+    if params.pos_size.h.is_px() { target_h = params.pos_size.h.value() as u32; }
+    let target = render_target_msaa(target_w, target_h, 4);
     Self {
       id,
       event: UiAction::None,
@@ -169,6 +173,7 @@ impl UiInput {
     // draw border
     draw_rectangle_lines(self.abs_bounds.x, self.abs_bounds.y, self.abs_bounds.w, self.abs_bounds.h, 1.5, BLACK);
   }
+  /// FIX: re-creating renderTarget breaks the rendering somehow
   fn remake_target(&mut self, new_bounds: &Rect) {
     let dx = new_bounds.w - self.abs_bounds.w;
     let dy = new_bounds.h - self.abs_bounds.h;

@@ -53,26 +53,6 @@ pub(crate) fn get_mouse_actions() -> (UiMouseAction, UiMouseAction) {
   (l_mouse, r_mouse)
 }
 
-pub(crate) fn update_position(
-  abs_origin: &mut (f32, f32),
-  rel_origin: &mut (f32, f32),
-  parent_origin: &(f32, f32),
-  mouse_delta: &(f32, f32),
-  draggable: bool,
-  holding: bool,
-) {
-  if draggable && holding {
-    abs_origin.0 += mouse_delta.0;
-    abs_origin.1 += mouse_delta.1;
-    rel_origin.0 += mouse_delta.0;
-    rel_origin.1 += mouse_delta.1;
-  } else {
-    // maintain relative distance from parent
-    abs_origin.0 = parent_origin.0 + rel_origin.0;
-    abs_origin.1 = parent_origin.1 + rel_origin.1;
-  }
-}
-
 pub(crate) fn update_position_adv(
   prev_abs_bounds: &Rect,
   prev_rel_bounds: &UiRect,

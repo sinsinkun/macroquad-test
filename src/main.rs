@@ -85,10 +85,8 @@ async fn main() {
 		};
 
 		// dialog box
-		let mut pos_size = UiRect::from_px(100.0, 100.0, 300.0, 25.0);
-		pos_size.x = UiSize::Percent(0.5);
 		let dialog = UiBox::new(4, UiBoxParams {
-			pos_size,
+			pos_size: UiRect::from_px(100.0, 100.0, 300.0, 25.0),
 			alignment: UiAlign::BottomRight,
 			draggable: true,
 			show_hover: true,

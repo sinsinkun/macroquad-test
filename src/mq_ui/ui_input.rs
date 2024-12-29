@@ -39,7 +39,7 @@ pub struct UiInput {
 }
 impl UiInput {
   pub fn new(id: u32, params: UiInputParams) -> Self {
-    let target = render_target_msaa(2000, 1000, 4);
+    let target = render_target_msaa(2000, 2000, 4);
     Self {
       id,
       event: UiAction::None,
@@ -173,8 +173,8 @@ impl UiInput {
   fn draw_to_target(&mut self, theme: &UiTheme, txt_size: &(f32, f32), active_color: Color) {
     // draw to target
     set_camera(&Camera2D {
-      zoom: vec2(0.001, 0.002),
-      target: vec2(1000.0, 500.0),
+      zoom: vec2(0.001, 0.001),
+      target: vec2(1000.0, 1000.0),
       render_target: Some(self.target.clone()),
       ..Default::default()
     });

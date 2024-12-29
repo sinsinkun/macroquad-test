@@ -1,6 +1,6 @@
 #![allow(unused)]
 
-use std::ops::{Add, AddAssign};
+use std::ops::{Add, AddAssign, Sub, SubAssign};
 use macroquad::prelude::*;
 use macroquad::rand::rand;
 
@@ -100,6 +100,35 @@ impl AddAssign<f32> for UiSize {
       }
       UiSize::Percent(lhs) => {
         let val = *lhs + rhs;
+        UiSize::Percent(val)
+      }
+    };
+  }
+}
+impl Sub<f32> for UiSize {
+  type Output = UiSize;
+  fn sub(self, rhs: f32) -> Self::Output {
+    let mut val: UiSize;
+    match self {
+      UiSize::Px(lhs) => {
+        val = UiSize::Px(lhs - rhs);
+      }
+      UiSize::Percent(lhs) => {
+        val = UiSize::Percent(lhs - rhs);
+      }
+    };
+    val
+  }
+}
+impl SubAssign<f32> for UiSize {
+  fn sub_assign(&mut self, rhs: f32) {
+    *self = match self {
+      UiSize::Px(lhs) => {
+        let val = *lhs - rhs;
+        UiSize::Px(val)
+      }
+      UiSize::Percent(lhs) => {
+        let val = *lhs - rhs;
         UiSize::Percent(val)
       }
     };

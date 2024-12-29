@@ -48,23 +48,16 @@ impl<'a> FpsCounter<'a> {
 // --- --- --- --- --- --- --- --- --- --- //
 fn window_conf() -> Conf {
 	// note: swap_interval determines Vsync
-	// -1: adaptive vsync
-	// 0: no vsync
-	// 1: vsync
-	let platform = Platform {
-		swap_interval: Some(0),
-		..Default::default()
-	};
+	// -1: adaptive VSync | 0: no VSync | 1: VSync
+	let platform = Platform { swap_interval: Some(0), ..Default::default() };
 	Conf {
-		window_title: "Macroquad Test".to_owned(),
+		window_title: "Macroquad UI".to_owned(),
 		window_height: 600,
 		window_width: 800,
 		window_resizable: true,
-		fullscreen: false,
-		icon: None,
 		sample_count: 4,
-		high_dpi: false,
-		platform: platform
+		platform,
+		..Default::default()
 	}
 }
 

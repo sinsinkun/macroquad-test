@@ -91,7 +91,7 @@ async fn main() {
 			dialog.hover_color = root.theme.secondary[3];
 
 			let dialog_body = UiBox::new(5, UiBoxParams {
-				pos_size: UiRect::from_px(0.0, 25.0, 300.0, 100.0),
+				pos_size: UiRect::from_px(0.0, 25.0, 300.0, 200.0),
 				draggable: false,
 				show_hover: false,
 				theme: Some(&root.theme),
@@ -103,12 +103,20 @@ async fn main() {
 					..Default::default()
 				});
 				let dialog_btn = UiButton::new(7, UiButtonParams {
-					pos_size: UiRect::from_px(10.0, 60.0, 100.0, 30.0),
+					pos_size: UiRect::from_px(10.0, 160.0, 100.0, 30.0),
 					theme: Some(&root.theme),
 					..Default::default()
 				});
 				body.add_child(UiElement::Text(dialog_txt));
 				body.add_child(UiElement::Button(dialog_btn));
+
+				let radio = UiRadio::new(8, UiRadioParams {
+					pos_size: UiRect::from_px(10.0, 120.0, 30.0, 30.0),
+					label: "Check this out".to_owned(),
+					theme: Some(&root.theme),
+					..Default::default()
+				});
+				body.add_child(UiElement::Radio(radio));
 			});
 			dialog.add_child(UiElement::Box(dialog_body));
 		});

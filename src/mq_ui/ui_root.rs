@@ -85,6 +85,10 @@ impl UiRoot {
           show_hover = true;
           text_input = true;
         }
+        UiElement::Radio(e) => {
+          event = e.event.clone();
+          show_hover = true;
+        }
       };
       match event {
         UiAction::Hover | UiAction::Hold | UiAction::LClick | UiAction::LRelease => {

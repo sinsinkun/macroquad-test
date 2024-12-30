@@ -22,6 +22,9 @@ pub use ui_button::UiButton;
 mod ui_input;
 pub use ui_input::UiInputParams;
 pub use ui_input::UiInput;
+mod ui_radio;
+pub use ui_radio::UiRadioParams;
+pub use ui_radio::UiRadio;
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum UiAction{ None, Hover, Hold, LClickOuter, LClick, RClick, LRelease, RRelease }
@@ -35,6 +38,7 @@ pub enum UiElement {
   Text(UiText),
   Button(UiButton),
   Input(UiInput),
+  Radio(UiRadio),
 }
 
 #[derive(Debug, Clone)]

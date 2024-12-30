@@ -179,6 +179,9 @@ pub(crate) fn update_children(
       UiElement::Input(e) => {
         e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse, time_delta);
       }
+      UiElement::Radio(e) => {
+        e.update(target, parent_rect, parent_delta, mouse_pos, mouse_delta, l_mouse, r_mouse);
+      }
     }
   }
 }
@@ -190,6 +193,7 @@ pub(crate) fn render_children(children: &mut Vec<UiElement>, theme: &UiTheme, pa
       UiElement::Text(e) => { e.render(&theme, parent_color); }
       UiElement::Button(e) => { e.render(&theme); }
       UiElement::Input(e) => { e.render(&theme); }
+      UiElement::Radio(e) => { e.render(&theme, parent_color); }
     }
   }
 }
@@ -250,6 +254,9 @@ pub(crate) fn find_node(children: &Vec<UiElement>, id: u32) -> Option<&UiElement
         if e.id == id { out = Some(elem); }
       }
       UiElement::Input(e) => {
+        if e.id == id { out = Some(elem); }
+      }
+      UiElement::Radio(e) => {
         if e.id == id { out = Some(elem); }
       }
     }
